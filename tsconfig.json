@@ -1,0 +1,28 @@
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "allowSyntheticDefaultImports": true,
+    "baseUrl": "./",
+    "checkJs": false,
+    "emitDecoratorMetadata": true,
+    "esModuleInterop": true,
+    "experimentalDecorators": true,
+    "forceConsistentCasingInFileNames": true,
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "outDir": "./build",
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "target": "ESNext",
+    "useUnknownInCatchVariables": false,
+    "paths": {
+      "@/core/*": ["api/core/*"],
+      "@/api/*": ["api/app/*"],
+      "@/libs/*": ["api/libs/*"],
+      "@/server/*": ["api/server/*"],
+      "@/routes/*": ["api/app/routes/*"]
+    }
+  },
+  "exclude": ["node_modules", "**/*.test.ts"]
+}

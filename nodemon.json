@@ -1,0 +1,12 @@
+{
+  "env": {
+    "NODE_ENV": "development"
+  },
+  "execMap": {
+    "ts": "node -r tsconfig-paths/register -r ts-node/register"
+  },
+  "ext": "js,json,ts",
+  "ignore": ["**/*.test.ts", "**/*.spec.ts", ".git", "node_modules"],
+  "restartable": "rs",
+  "watch": ["api", "global"]
+}
