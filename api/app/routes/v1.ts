@@ -1,5 +1,6 @@
-import { MainVersionRouteEntryFn } from "@/core/api/routes";
-import { testRoutes } from "../v1/route";
+import { VersionRouteMainEntryFn } from "@/core/api/routes";
+import { clientRoutes } from "../v1/clients";
+import { managementRoutes } from "../v1/managment";
 
 enum ClientRoute {
   getMany = "clients/",
@@ -18,8 +19,9 @@ enum Domains {
   bobbers = "bobbers",
 }
 
-export const v1: MainVersionRouteEntryFn = (apiRouter) => {
+export const v1: VersionRouteMainEntryFn = (apiRouter) => {
   const routeGateway = apiRouter.register({ version: "v1" });
 
-  testRoutes(routeGateway);
+  clientRoutes(routeGateway);
+  managementRoutes(routeGateway);
 };

@@ -1,8 +1,8 @@
-import { MainDomainRouteEntryFn } from "@/core/api/routes";
+import { DomainRouteMainEntryFn } from "@/core/api/routes";
 import { Result } from "@/core/result";
 
-export const testRoutes: MainDomainRouteEntryFn = (routeGateway) => {
-  const routeNode = routeGateway.register("test");
+export const clientRoutes: DomainRouteMainEntryFn = (routeGateway) => {
+  const routeNode = routeGateway.register("clients");
 
   routeNode.addEndpoint("get", "tests", async () => {
     return new Result({ code: 200, isSuccess: true });

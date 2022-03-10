@@ -6,11 +6,21 @@ import { ResponseBase } from "@/core/api/api";
 import { BaseError, ServerErrorCode } from "@/core/error";
 import { Logger } from "@/libs/logger";
 
+/** Type of function that should be used to define the main route middleware,
+ * where all {@link VersionRouteMainEntryFn} are invoked. This middleware should
+ * be called by the ServerApp.
+ */
 export type RoutesMiddlewareFn = (app: Express) => void;
 
-export type MainVersionRouteEntryFn = (apiRouter: ApiRouter) => void;
+/** Type of function that should be used to define the route functions in
+ * charge of declaring a new api version.
+ */
+export type VersionRouteMainEntryFn = (apiRouter: ApiRouter) => void;
 
-export type MainDomainRouteEntryFn = (routeGateway: RouteGateway) => void;
+/** Type of function that should be used to define the route functions in
+ * charge of declaring the endpoints of a particular domain.
+ */
+export type DomainRouteMainEntryFn = (routeGateway: RouteGateway) => void;
 
 enum ApiVersionEnum {
   v1 = "v1",
@@ -38,38 +48,33 @@ type RestVerb =
   | "post"
   | "put";
 
+/** Arguments required when {@link ApiRouter} class is instanciated. */
 interface ApiRouterArgs {
   app: Express;
 }
 
-interface RouteGatewayRegisterArgs {
-  version: ApiVersion;
-}
-
-interface HasDuplicitiesArgs {
-  domain: string;
-  uri: string;
-  verb: RestVerb;
-  version: ApiVersion;
-}
-
+/** Arguments required when {@link RouteGateway} class is instanciated. */
 interface RouteGatewayArgs {
   apiRouterScope: ApiRouter;
   basePath: string;
+  isDuplicated: boolean;
   router: Router;
   version: ApiVersion;
-  isDuplicated: boolean;
 }
 
-type RouteEndpoint = { uri: string; verb: RestVerb };
-
+/** Arguments required when {@link RouteNode} class is instanciated. */
 interface RouteNodeArgs {
   apiRouterScope: ApiRouter;
   basePath: string;
-  router: Router;
-  domain: string;
-  version: ApiVersion;
   isDuplicated: boolean;
+  router: Router;
+  domain?: string;
+  version?: ApiVersion;
+}
+
+interface RouteEndpoint {
+  uri: string;
+  verb: RestVerb;
 }
 
 interface LoggableEndpoint {
@@ -79,21 +84,42 @@ interface LoggableEndpoint {
   version: string;
 }
 
-interface RouteEndpointRegisterArgs {}
-
+/** Generic typing to infer the type of response from endpoints. */
 type ModuleOperation = <Req, Dto>(
   req: Req,
   res: ResponseBase<Dto>
 ) => Promise<Result<Dto>>;
 
+/** Additional arguments that can be passed through the {@link RouteNode} when
+ * the register function is called, to customize the behavior of the endpoint.
+ */
 interface ProxyRouterArgs {}
 
+/** Main class responsible for the creation, management and configuration of API
+ * routes. His main responsibility is to ensure that all defined endpoint paths 
+ * comply with the RESTful architecture principle, and comply with the Violet 
+ * architecture principles. As a secondary feature, it automates many API route 
+ * implementations and configurations, saving a lot of boilerplate code, which 
+ * is replaced by more verbose, readable, and declarative code. Finally it 
+ * provides its own internal method to log the tree of registered endpoints.
+
+Endpoints in Violet consist of the following components: "Version" of the API, 
+"Domain" they belong to, "Verb" of the endpoint, and "path" of the endpoint.
+
+- Prevents accidentally declaring two endpoints whose components are identical.
+- Prevents declaring two equal API versions.
+- Prevents declaring two equal Domains.
+- Only allows certain specific verbs.
+- Automates the implementation of aspects of the Violet architecture such as 
+  authentication type, middleware chaining, type inference in route Request and 
+  Response objects, etc.
+ */
 export class ApiRouter {
   private apiRouterScope: ApiRouter;
   private app: Express;
   private basePath: string;
   private gateways: Array<RouteGateway>;
-  private versionlessNodes: Array<RouteNode>;
+  baseNodes: Array<RouteNode>;
 
   constructor(args: ApiRouterArgs) {
     const { app } = args;
@@ -101,14 +127,24 @@ export class ApiRouter {
     this.apiRouterScope = this;
     this.app = app;
     this.gateways = [];
-    this.versionlessNodes = [];
+    this.baseNodes = [];
 
     this.basePath = environment.api.BASE_URI;
+
+    const router = Router();
+    this.addBaseEndpoints(router);
   }
 
-  register(args: RouteGatewayRegisterArgs): RouteGateway {
+  /** Create a new {@link RouteGateway} where domains related to a particular
+   * API version can be registered.
+   *
+   * @returns the RouteGateway instance, required by
+   * {@link DomainRouteMainEntryFn} function.
+   */
+  register(args: { version: ApiVersion }): RouteGateway {
     const { version } = args;
 
+    // Check if this version doesn't exists already.
     const isDuplicated = this.apiRouterScope.hasVersionDuplicity(version);
 
     const router = Router();
@@ -123,15 +159,23 @@ export class ApiRouter {
 
     this.gateways.push(gateway);
 
+    // Each time a new API version is created, should be added base endpoints
+    // related to this version.
+    this.addGatewayBaseEndpoints(router, version);
+
     return gateway;
   }
 
+  /** Consume all {@link RouteGateway}'s and apply Express.Router instances on
+   * top of the Express app.
+   */
   turnOn() {
     for (const gateway of this.gateways) {
       try {
         this.app.use(gateway.router);
 
-        this.printEndpoints();
+        // Log all registered endpoints successfully.
+        this.logEndpoints();
       } catch (error) {
         const failure = new RouteError.TurningOnGatewayFailure(error);
         Logger.emergency(failure);
@@ -139,19 +183,78 @@ export class ApiRouter {
     }
   }
 
+  /** Creates base endpoints used for health checks through third-party
+   * monitoring systems.
+   *
+   * @param router Express Router instance.
+   * @param version API Version used.
+   */
+  addBaseEndpoints(router: Router) {
+    const node = new RouteNode({
+      apiRouterScope: this.apiRouterScope,
+      basePath: this.basePath,
+      isDuplicated: false,
+      router,
+    });
+
+    node.addBaseEndpoint("/");
+    node.addBaseEndpoint(`${this.basePath}`);
+
+    this.baseNodes.push(node);
+  }
+
+  /** Creates base endpoints used for health checks through third-party
+   * monitoring systems.
+   *
+   * @param router Express Router instance.
+   * @param version API Version used.
+   */
+  addGatewayBaseEndpoints(router: Router, version: ApiVersion) {
+    const node = new RouteNode({
+      apiRouterScope: this.apiRouterScope,
+      basePath: this.basePath,
+      isDuplicated: false,
+      router,
+      version,
+    });
+
+    node.addBaseEndpoint(`${this.basePath}/${version}`);
+    node.addDebuggingEndpoint(`${this.basePath}/${version}/debug-monitors`);
+
+    this.baseNodes.push(node);
+  }
+
+  /** Custom sorting algorithm to log registered endpoints. Sorts the endpoints
+   * based on the following priority order: Version > Domain > Verb > Path.
+   */
   private sortLoggableEndpoints(): Array<LoggableEndpoint> {
+    // Simplified list of endpoints.
     let list: Array<LoggableEndpoint> = [];
 
+    // Search for each RouteEndpoint on each RouteNode inside each RouteGateway.
     for (const gateway of this.gateways) {
       for (const node of gateway.nodes) {
         for (const endpoint of node.endpoints) {
           list.push({
-            domain: node.domain,
+            domain: String(node.domain),
             uri: endpoint.uri,
             verb: endpoint.verb,
             version: gateway.version,
           });
         }
+      }
+    }
+
+    // Search for each RouteEndpoint that has no RouteGateway parent (base
+    // endpoints).
+    for (const node of this.apiRouterScope.baseNodes) {
+      for (const endpoint of node.endpoints) {
+        list.push({
+          domain: "base",
+          uri: endpoint.uri,
+          verb: endpoint.verb,
+          version: node.version ? node.version : "--",
+        });
       }
     }
 
@@ -201,7 +304,7 @@ export class ApiRouter {
 
         // Separate listByDomain by verbs.
         let matrixByVerb: Array<Array<LoggableEndpoint>> = verbs.map((verb) =>
-          list.filter((e) => e.verb == verb)
+          listByDomain.filter((e) => e.verb == verb)
         );
 
         let listByDomainReintegrated: Array<LoggableEndpoint> = [];
@@ -209,22 +312,27 @@ export class ApiRouter {
           // sort all endpoints by uri.
           listByVerb.sort((a, b) => (a.uri > b.uri ? 1 : -1));
 
+          // Reintegrate verbs
           listByDomainReintegrated =
             listByDomainReintegrated.concat(listByVerb);
         });
 
+        // Reintegrate domains
         listByVersionReintegrated = listByVersionReintegrated.concat(
-          ...listByDomainReintegrated
+          listByDomainReintegrated
         );
       });
 
-      filteredList = filteredList.concat(...listByVersionReintegrated);
+      // Reintegrate versions
+      filteredList = filteredList.concat(listByVersionReintegrated);
     });
 
     return filteredList;
   }
 
-  private printEndpoints(): void {
+  /** Create a unique log that includes all endpoints registered successfully.
+   */
+  private logEndpoints(): void {
     try {
       const loggableEndpoints = this.sortLoggableEndpoints();
 
@@ -232,6 +340,9 @@ export class ApiRouter {
         let domainLongestLength = 0;
         let verbLongestLength = 0;
         let uriLongestLength = 0;
+
+        // Calculate the longest string of domains, verbs and uris, because
+        // are added spaces on strings builded for better presentation.
         loggableEndpoints.forEach((e) => {
           if (e.domain.length > domainLongestLength)
             domainLongestLength = e.domain.length;
@@ -243,6 +354,8 @@ export class ApiRouter {
         });
 
         let log = "List of Endpoints routed: \n";
+
+        // Append each endpoint on the same log string, so it only log once.
         loggableEndpoints.forEach((e) => {
           const domainSpacedCount = domainLongestLength - e.domain.length;
           const verbSpacedCount = verbLongestLength - e.verb.length;
@@ -261,6 +374,7 @@ export class ApiRouter {
           log += `${e.uri}${uriSpaced} \n`;
         });
 
+        // Log endpoints.
         Logger.notice(log.toString());
       }
     } catch (error) {
@@ -269,6 +383,11 @@ export class ApiRouter {
     }
   }
 
+  /** Validates that the version you want to use to create a new
+   * {@link RouteGateway} does not currently exist.
+   *
+   * @returns true if already exists
+   */
   hasVersionDuplicity(version: ApiVersion): boolean {
     for (const gateway of this.gateways) {
       if (gateway.version == version) {
@@ -282,6 +401,11 @@ export class ApiRouter {
     return false;
   }
 
+  /** Validates that the version and domain you want to use to create a new
+   * {@link RouteNode} does not currently exist.
+   *
+   * @returns true if already exists
+   */
   hasDomainDuplicity(domain: string, version: ApiVersion): boolean {
     const gateway = this.gateways.find((g) => g.version == version);
 
@@ -304,9 +428,49 @@ export class ApiRouter {
     return false;
   }
 
-  hasUriDuplicity(args: HasDuplicitiesArgs): boolean {
+  /** Validates that the domain, uri, verb and version you want to use to create
+   * a new {@link RouteEndpoint} does not currently exist.
+   *
+   * @returns true if already exists
+   */
+  hasUriDuplicity(args: {
+    domain?: string;
+    uri: string;
+    verb: RestVerb;
+    version?: ApiVersion;
+  }): boolean {
     const { domain, uri, verb, version } = args;
 
+    if (version === undefined || domain === undefined)
+      return this.checkBaseEndpointDuplicity(uri, verb);
+
+    return this.checkCommonEndpointDuplicity(domain, uri, verb, version);
+  }
+
+  private checkBaseEndpointDuplicity(uri: string, verb: RestVerb): boolean {
+    for (const node of this.apiRouterScope.baseNodes) {
+      for (const endpoint of node.endpoints) {
+        if (endpoint.uri == uri && endpoint.verb == verb) {
+          const exception = new RouteError.DuplicatedEndpointException(
+            uri,
+            verb
+          );
+          Logger.warning(exception);
+
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
+
+  private checkCommonEndpointDuplicity(
+    domain: string,
+    uri: string,
+    verb: RestVerb,
+    version: ApiVersion
+  ): boolean {
     const gateway = this.gateways.find((g) => g.version == version);
     if (gateway == undefined) {
       const exception = new RouteError.VersionDoesntExistsFailure(version);
@@ -325,7 +489,11 @@ export class ApiRouter {
 
     for (const node of gateway.nodes) {
       for (const endpoint of node.endpoints) {
-        if (endpoint.uri == uri && endpoint.verb == verb) {
+        if (
+          endpoint.uri == uri &&
+          endpoint.verb == verb &&
+          node.domain == domain
+        ) {
           const exception = new RouteError.DuplicatedEndpointException(
             uri,
             verb
@@ -349,6 +517,7 @@ class RouteGateway {
   private apiRouterScope: ApiRouter;
   private isDuplicated: boolean;
   private basePath: string;
+  private domain!: string;
 
   constructor(args: RouteGatewayArgs) {
     const { apiRouterScope, basePath, isDuplicated, router, version } = args;
@@ -381,27 +550,17 @@ class RouteGateway {
       isDuplicated,
     });
 
-    this.addBaseEndpoints(node);
-
     this.nodes.push(node);
+    this.domain = domain;
 
     return node;
-  }
-
-  addBaseEndpoints(node: RouteNode) {
-    node.addBaseEndpoint("/");
-    node.addBaseEndpoint(`${this.basePath}`);
-    node.addBaseEndpoint(`${this.basePath}/${this.version}`);
-    node.addDebuggingEndpoint(
-      `${this.basePath}/${this.version}/debug-monitors`
-    );
   }
 }
 
 class RouteNode {
   endpoints: Array<RouteEndpoint>;
-  domain: string;
-  version: ApiVersion;
+  domain?: string;
+  version?: ApiVersion;
 
   private apiRouterScope: ApiRouter;
   private isDuplicated: boolean;
@@ -449,9 +608,16 @@ class RouteNode {
     verb: RestVerb,
     route: string,
     moduleOperation?: ModuleOperation,
-    args?: RouteEndpointRegisterArgs
+    args?: ProxyRouterArgs
   ): void {
     const uri = `${this.basePath}/${this.version}/${route}`;
+
+    if (this.domain === undefined) {
+      const exception = new RouteError.UndefinedDomainException();
+      Logger.warning(exception);
+
+      return;
+    }
 
     const isDuplicated = this.apiRouterScope.hasUriDuplicity({
       domain: this.domain,
@@ -467,6 +633,16 @@ class RouteNode {
     return this.proxy(this.router, verb, uri, moduleOperation, args);
   }
 
+  /** This feature simplifies the creation of endpoints through Express.js and
+   * reduces middleware implementation by applying a Proxy structural pattern.
+   *
+   * @param router
+   * @param verb
+   * @param uri
+   * @param moduleOperation
+   * @param args
+   * @returns
+   */
   private proxy(
     router: Router,
     verb: RestVerb,
@@ -488,6 +664,9 @@ class RouteNode {
     return undefined as void;
   }
 
+  /** handles the invocation of the moduleOperation, obtains its result and
+   * traps potential errors that may occur at the endpoint execution level.
+   */
   private apiCallback = async <Req, Dto>(
     req: Req,
     res: ResponseBase<Dto>,
@@ -503,6 +682,9 @@ class RouteNode {
     }
   };
 
+  /** In case moduleOperation was not provided, will create a response using
+   * statusCode 501 "NOT-IMPLEMENTED".
+   */
   private fallback = async (
     _: Request,
     res: Response
@@ -512,6 +694,16 @@ class RouteNode {
 }
 
 namespace RouteError {
+  export class UndefinedDomainException extends BaseError {
+    constructor() {
+      super({
+        code: ServerErrorCode["INTERNAL-SERVER-ERROR"],
+        message: "",
+        type: `${UndefinedDomainException.name}`,
+      });
+    }
+  }
+
   export class DomainDoesntExistsFailure extends BaseError {
     constructor(domain: string) {
       super({
