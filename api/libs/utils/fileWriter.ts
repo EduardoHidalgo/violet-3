@@ -7,6 +7,9 @@ interface WriteArgs {
   fileName: string;
 }
 
+/** Internal File Writer class to handle file operations on Node.js. Notice
+ * errors use console.error instead Logger class to prevent infinite loop call.
+ */
 class FileWriter {
   private root: string;
 
@@ -28,7 +31,7 @@ class FileWriter {
         });
       }
     } catch (error) {
-      console.log({ error });
+      console.error(error);
     }
   }
 
@@ -44,7 +47,7 @@ class FileWriter {
 
       return exists;
     } catch (error) {
-      console.log({ error });
+      console.error(error);
       return false;
     }
   }
@@ -60,7 +63,7 @@ class FileWriter {
         fs.appendFileSync(filePath, data);
       }
     } catch (error) {
-      console.log({ error });
+      console.error(error);
     }
   }
 }

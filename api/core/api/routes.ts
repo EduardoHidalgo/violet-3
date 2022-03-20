@@ -1,6 +1,6 @@
 import { Express, Request, Response, Router } from "express";
 
-import { environment } from "@/server/environment";
+import { environment } from "@/environment";
 import { Result } from "@/core/index";
 import { ResponseBase } from "@/core/api/api";
 import { BaseError, ServerErrorCode } from "@/core/error";

@@ -17,11 +17,13 @@
     "target": "ESNext",
     "useUnknownInCatchVariables": false,
     "paths": {
-      "@/core/*": ["api/core/*"],
       "@/api/*": ["api/app/*"],
+      "@/core/*": ["api/core/*"],
+      "@/environment": ["api/server/environment/index"],
       "@/libs/*": ["api/libs/*"],
-      "@/server/*": ["api/server/*"],
-      "@/routes/*": ["api/app/routes/*"]
+      "@/middlewares": ["api/server/middlewares/index"],
+      "@/routes/*": ["api/app/routes/*"],
+      "@/server": ["api/server/app"]
     }
   },
   "exclude": ["node_modules", "**/*.test.ts"]

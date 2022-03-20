@@ -1,7 +1,7 @@
 import express from "express";
 import { Server } from "node:http";
 
-import { environment } from "@/server/environment";
+import { environment } from "@/environment";
 import {
   corsMiddleware,
   environmentMiddleware,
@@ -10,7 +10,8 @@ import {
   parserMiddleware,
   rateLimitMiddleware,
   routesMiddleware,
-} from "@/server/middlewares";
+} from "@/middlewares";
+import { Logger } from "@/libs/logger";
 
 /** Class in charge of starting the API server and calling all the middleware
  * required for the server configuration. It serves as the main gateway where
@@ -25,12 +26,14 @@ export class ServerApp {
     this.app = express();
   }
 
-  init() {
-    this.configure();
+  async init() {
+    // Probably some async configurations.
+    await this.configure();
+
     this.start();
   }
 
-  private configure() {
+  private async configure() {
     // Environments always should be the first middleware called.
     environmentMiddleware();
 
@@ -46,8 +49,9 @@ export class ServerApp {
 
   private start() {
     this.server = this.app.listen(environment.server.PORT, () => {
-      // TODO Replace with Logger
-      console.log(`Running at http://localhost:${environment.server.PORT}`);
+      Logger.notice(`Running at http://localhost:${environment.server.PORT}`);
     });
   }
 }
+
+export const serverApp = new ServerApp();

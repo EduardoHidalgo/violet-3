@@ -1,8 +1,8 @@
 import { path } from "app-root-path";
 
-import { environment } from "@/server/environment";
 import { FileWriter } from "@/libs/utils/fileWriter";
 import { LogColor, LogColorType, LoggerLevel } from "@/libs/logger/types";
+import { Temporal } from "../temporal";
 
 /** Specialized internal logging service. Generates optimized logs for each
  * logging case. During development, it generates logs in the console, applying
@@ -45,7 +45,7 @@ import { LogColor, LogColorType, LoggerLevel } from "@/libs/logger/types";
  */
 class Logger {
   private static fw: FileWriter = new FileWriter();
-  private static path = environment.server.LOGGER_PATH;
+  private static path = "./logs";
 
   /** (600) A person must take an action immediately.
    *
@@ -130,6 +130,26 @@ class Logger {
   static warning = (message: any, ...optionalMessages: any[]): void =>
     this.executeLog(LoggerLevel.WARNING, "FgYellow", message, optionalMessages);
 
+  /** Execute all logs processes.
+   *
+   * @param level Level of de Logger Severity.
+   * @param colors Colors used when logging on console.
+   * @param message Log string.
+   * @param optionalMessages Subsequent log strings.
+   */
+  private static executeLog(
+    level: LoggerLevel,
+    colors: LogColorType | LogColorType[],
+    message: any,
+    optionalMessages?: any[]
+  ): void {
+    const tag = `[${level}] `;
+    const log = this.buildLog(tag, message, optionalMessages);
+
+    this.logOnConsole(log, colors);
+    this.logOnFile(log);
+  }
+
   /** Parse complex data types like Object or Array.
    *
    * @param msg Log string.
@@ -173,7 +193,7 @@ class Logger {
     if (optionalMessages)
       if (optionalMessages.length > 0) {
         (optionalMessages[0] as Array<any>).forEach(
-          (om) => (log += ` ${this.stringify(om)}`)
+          (om) => (log += `${this.stringify(om)}`)
         );
       }
 
@@ -200,41 +220,23 @@ class Logger {
    * @param log Log string.
    */
   private static logOnFile(log: string): void {
-    const date = new Date().toJSON().substring(0, 10);
-    const timestamp = new Date(date).getTime();
-    const dateString = String(timestamp).substring(0, 8);
-    const fileName = `${dateString}.log`;
-
     try {
+      const date = Temporal.now();
+      const timestamp = Temporal.format.timestampReduced(date);
+
+      const fileName = `${timestamp}.log`;
+
       if (path !== undefined)
         this.fw.appendFile({
           data: `\n${log}`,
           path: this.path,
           fileName,
         });
-    } catch (e) {
-      this.error(e);
+    } catch (error) {
+      // Notice usage of console.error instead Logger class to prevent infinite
+      // loop call.
+      console.error(error);
     }
-  }
-
-  /** Execute all logs processes.
-   *
-   * @param level Level of de Logger Severity.
-   * @param colors Colors used when logging on console.
-   * @param message Log string.
-   * @param optionalMessages Subsequent log strings.
-   */
-  private static executeLog(
-    level: LoggerLevel,
-    colors: LogColorType | LogColorType[],
-    message: any,
-    optionalMessages?: any[]
-  ): void {
-    const tag = `[${level}] `;
-    const log = this.buildLog(tag, message, optionalMessages);
-
-    this.logOnConsole(log, colors);
-    this.logOnFile(log);
   }
 }
 

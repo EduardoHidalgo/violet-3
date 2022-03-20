@@ -1,6 +1,7 @@
 import { VersionRouteMainEntryFn } from "@/core/api/routes";
-import { clientRoutes } from "../v1/clients";
-import { managementRoutes } from "../v1/managment";
+
+import { clientRoutes } from "@/api/v1/clients";
+import { managementRoutes } from "@/api/v1/managment";
 
 enum ClientRoute {
   getMany = "clients/",

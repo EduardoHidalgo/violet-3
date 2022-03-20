@@ -31,21 +31,29 @@ export type LogColorType = keyof typeof LogColor;
 export enum LoggerLevel {
   /** (600) A person must take an action immediately. */
   ALERT = "ALERT",
+
   /** (700) Critical events cause more severe problems or outages. */
   CRITICAL = "CRITICAL",
+
   /** (100) Debug or trace information. */
   DEBUG = "DEBUG",
+
   /** (0) The log entry has no assigned severity level. */
   DEFAULT = "DEFAULT",
+
   /** (800) One or more systems are unusable. */
   EMERGENCY = "EMERGENCY",
+
   /** (500) Error events are likely to cause problems. */
   ERROR = "ERROR",
+
   /** (200) Routine information, such as ongoing status or performance. */
   INFO = "INFO",
+
   /** (300) Normal but significant events, such as start up, shut down, or a
    * configuration change. */
   NOTICE = "NOTICE",
+
   /** (400) Warning events might cause problems. */
   WARNING = "WARNING",
 }

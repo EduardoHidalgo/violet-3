@@ -1,7 +1,10 @@
 import { ApiRouter, RoutesMiddlewareFn } from "@/core/api/routes";
 import { v1 } from "@/api/routes/v1";
+import { Logger } from "@/libs/logger";
 
-/** Middleware for loading all routes
+/** Middleware to load all routes. For the correct functioning of the routes and
+ * the API, it is recommended to use the {@link ApiRouter} class, which is in
+ * charge of configuring the routes on the express server and managing them.
  */
 export const routesMiddleware: RoutesMiddlewareFn = (app) => {
   const apiRouter = new ApiRouter({ app });
@@ -9,4 +12,6 @@ export const routesMiddleware: RoutesMiddlewareFn = (app) => {
   v1(apiRouter);
 
   apiRouter.turnOn();
+
+  Logger.notice("routesMiddleware configured");
 };

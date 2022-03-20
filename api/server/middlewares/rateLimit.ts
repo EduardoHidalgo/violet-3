@@ -1,7 +1,8 @@
 import { Express } from "express";
 import rateLimit from "express-rate-limit";
 
-import { environment } from "@/server/environment";
+import { environment } from "@/environment";
+import { Logger } from "@/libs/logger";
 
 /** Basic rate-limiting middleware for Express. Use to limit repeated requests
  * to public APIs and/or endpoints. It's important to notice that this
@@ -18,4 +19,6 @@ export function rateLimitMiddleware(app: Express): void {
       windowMs: environment.server.RATE_LIMIT_WMS_MINUTES * 60 * 1000,
     })
   );
+
+  Logger.notice("rateLimitMiddleware configured");
 }

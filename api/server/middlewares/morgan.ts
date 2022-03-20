@@ -1,21 +1,21 @@
 import { Express, Request, Response } from "express";
 import morgan from "morgan";
 
-import { environment } from "@/server/environment";
+import { environment } from "@/environment";
+import { Logger } from "@/libs/logger";
 
 /** Prevents logging health checks when server is deployed.
  */
-function skipHealthChecks(req: Request, res: Response) {
-  return environment.server.DEPLOY && req.originalUrl == "/";
+function skipHealthChecks(req: Request, _: Response): boolean {
+  return environment.infra.IS_DEPLOY && req.originalUrl == "/";
 }
 
 /** Use of custom logging to print in console morgan logs.
  *
  * @param log Log string.
  */
-function writeLog(log: string) {
-  // TODO Replace with Logger
-  console.log(log);
+function writeLog(log: string): void {
+  return Logger.info(log);
 }
 
 /** HTTP incoming request logger middleware for node.js.
@@ -69,4 +69,6 @@ export function morganMiddleware(app: Express): void {
       app.use(morgan(devResponse, responseOptions));
       break;
   }
+
+  Logger.notice("morganMiddleware configured");
 }
