@@ -1,4 +1,4 @@
-/** Common interface that should be extended by authentication schema validators
+/** Common interface that should be extended by authentication schema validators.
  */
 export interface AuthorizationHeaders {
   authorization?: string;

@@ -20,6 +20,7 @@ export class Temporal {
   static utc = TemporalUTC;
   static utils = TemporalUtils;
 
+  // TODO add comments
   static now() {
     return moment();
   }

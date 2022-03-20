@@ -1,16 +1,10 @@
 import fs from "fs";
 import appRoot from "app-root-path";
 
-interface WriteArgs {
-  data: string;
-  path: string;
-  fileName: string;
-}
-
 /** Internal File Writer class to handle file operations on Node.js. Notice
  * errors use console.error instead Logger class to prevent infinite loop call.
  */
-class FileWriter {
+export class FileWriter {
   private root: string;
 
   constructor() {
@@ -21,6 +15,7 @@ class FileWriter {
     console.log({ path: this.root });
   }
 
+  // TODO add comments
   createFolder(path: string): void {
     try {
       const dirPath = `${this.root}/${path}`;
@@ -34,7 +29,7 @@ class FileWriter {
       console.error(error);
     }
   }
-
+  // TODO add comments
   fileExists(path: string): boolean {
     try {
       let exists = false;
@@ -52,7 +47,8 @@ class FileWriter {
     }
   }
 
-  appendFile(args: WriteArgs) {
+  // TODO add comments
+  appendFile(args: { data: string; path: string; fileName: string }) {
     try {
       const { data, path, fileName } = args;
       const filePath = `${this.root}/${path}/${fileName}`;
@@ -67,5 +63,3 @@ class FileWriter {
     }
   }
 }
-
-export { FileWriter };

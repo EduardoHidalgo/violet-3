@@ -75,6 +75,11 @@ export interface ResponseBase<Dto>
     Dto | EmptyCollection<Dto> | EmptyDocument<Dto> | BaseError
   > {}
 
+// TODO document usage
 export type EmptyCollection<T> = T[];
 
-export type EmptyDocument<T> = T | null;
+// TODO document usage
+export type EmptyDocument<T> = T | Empty;
+
+// TODO document usage
+export type Empty = void;

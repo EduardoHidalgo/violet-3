@@ -13,6 +13,7 @@ enum BobberRoute {
   get = "bobbers/:clientId",
 }
 
+// TODO integrate Domain typed inference on Routing
 type DomainRoute = ClientRoute | BobberRoute;
 
 enum Domains {

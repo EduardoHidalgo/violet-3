@@ -94,6 +94,7 @@ class EnvironmentValidator {
  * job correctly.
  */
 export class EnvManager {
+  // TODO add descriptive comments for all variables
   api: {
     BASE_URI: string;
   };

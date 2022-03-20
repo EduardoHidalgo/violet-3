@@ -7,6 +7,7 @@ import { Logger } from "@/libs/logger";
 /** Prevents logging health checks when server is deployed.
  */
 function skipHealthChecks(req: Request, _: Response): boolean {
+  // TODO add log for skipping enabled, should use a special server debug env var.
   return environment.infra.IS_DEPLOY && req.originalUrl == "/";
 }
 

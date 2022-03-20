@@ -6,6 +6,8 @@ import { ResponseBase } from "@/core/api/api";
 import { BaseError, ServerErrorCode } from "@/core/error";
 import { Logger } from "@/libs/logger";
 
+// TODO add environment variable for logs + add logs
+
 /** Type of function that should be used to define the main route middleware,
  * where all {@link VersionRouteMainEntryFn} are invoked. This middleware should
  * be called by the ServerApp.

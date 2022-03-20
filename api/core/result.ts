@@ -168,5 +168,3 @@ export type Either<S, F> =
 
 /** Promise equivalent of {@link Either} type. */
 export type EitherPromise<S, F> = Promise<Either<S, F>>;
-
-export type Empty = null;
