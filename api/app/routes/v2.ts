@@ -8,20 +8,20 @@ import {
   ManagementRoutes,
 } from "@/api/v1/management";
 
-export type V1DomainUnionType = ClientDomain | ManagementDomain;
-export type V1EndpointRouteUnionType = ClientRoutes | ManagementRoutes;
+export type V2DomainUnionType = ClientDomain | ManagementDomain;
+export type V2EndpointRouteUnionType = ClientRoutes | ManagementRoutes;
 
 export type RouteGatewayType = RouteGateway<
-  V1DomainUnionType,
-  V1EndpointRouteUnionType
+  V2DomainUnionType,
+  V2EndpointRouteUnionType
 >;
 
-export const v1: RouteVersionFn = (apiRouter: ApiRouterType) => {
+export const v2: RouteVersionFn = (apiRouter: ApiRouterType) => {
   const routeGateway = apiRouter.register<
-    V1DomainUnionType,
-    V1EndpointRouteUnionType
+    V2DomainUnionType,
+    V2EndpointRouteUnionType
   >({
-    version: "v1",
+    version: "v2",
   });
 
   clientRoutes(routeGateway);

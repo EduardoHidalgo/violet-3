@@ -62,7 +62,9 @@ export class BaseApiRouter {
    * @returns the RouteGateway instance, required by
    * {@link RouteDomainFn} function.
    */
-  register(args: { version: ApiVersion }): RouteGateway {
+  register<DomainUnion, RoutesUnion>(args: {
+    version: ApiVersion;
+  }): RouteGateway<DomainUnion, RoutesUnion> {
     const { version } = args;
 
     // Check if this version doesn't exists already.
@@ -94,13 +96,13 @@ export class BaseApiRouter {
     for (const gateway of this.gateways) {
       try {
         this.app.use(gateway.router);
-
-        // Log all registered endpoints successfully.
-        RouteLogger.log(this.baseNodes, this.gateways);
       } catch (error) {
         Logger.emergency(new RouteError.TurningOnGatewayFailure(error));
       }
     }
+
+    // Log all registered endpoints successfully.
+    RouteLogger.log(this.baseNodes, this.gateways);
   }
 
   /** Creates base endpoints used for health checks through third-party
@@ -286,7 +288,7 @@ Endpoints in Violet consist of the following components: "Version" of the API,
   authentication type, middleware chaining, type inference in route Request and 
   Response objects, etc.
  */
-export class ApiRouter {
+export class ApiRouter<DomainGlobalUnion, RoutesGlobalUnion> {
   private apiRouter: BaseApiRouter;
 
   constructor(args: ApiRouterArgs) {
@@ -299,8 +301,12 @@ export class ApiRouter {
    * @returns the RouteGateway instance, required by
    * {@link RouteDomainFn} function.
    */
-  register = (args: { version: ApiVersion }): RouteGateway =>
-    this.apiRouter.register(args);
+  register = <
+    DomainUnion extends DomainGlobalUnion,
+    RoutesUnion extends RoutesGlobalUnion
+  >(args: {
+    version: ApiVersion;
+  }): RouteGateway<DomainUnion, RoutesUnion> => this.apiRouter.register(args);
 
   /** Consume all {@link RouteGateway}'s and apply Express.Router instances on
    * top of the Express app.

@@ -64,13 +64,14 @@ export class BaseRouteGateway {
   }
 }
 
-export class RouteGateway {
+export class RouteGateway<DomainUnion, RoutesUnion> {
   private routeGateway: BaseRouteGateway;
 
   constructor(routeGateway: BaseRouteGateway) {
     this.routeGateway = routeGateway;
   }
 
-  register = <Domain, Routes>(domain: string): RouteNode<Domain, Routes> =>
-    this.routeGateway.register(domain);
+  register = <Domain extends DomainUnion, Routes extends RoutesUnion>(
+    domain: string
+  ): RouteNode<Domain, Routes> => this.routeGateway.register(domain);
 }
