@@ -1,6 +1,13 @@
 import { RouteDomainFn } from "@/core/routes";
 import { Result } from "@/core/result";
 
+export enum ManagementRoutes {
+  getMany = "management/",
+  get = "management/:managementId",
+}
+
+export type ManagementDomain = "management";
+
 export const managementRoutes: RouteDomainFn = (routeGateway) => {
   const routeNode = routeGateway.register("management");
 

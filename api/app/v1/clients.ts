@@ -1,6 +1,13 @@
 import { RouteDomainFn } from "@/core/routes";
 import { Result } from "@/core/result";
 
+export type ClientDomain = "clients";
+
+export enum ClientRoutes {
+  getMany = "clients/",
+  get = "clients/:clientId",
+}
+
 export const clientRoutes: RouteDomainFn = (routeGateway) => {
   const routeNode = routeGateway.register("clients");
 

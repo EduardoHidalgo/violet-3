@@ -1,6 +1,6 @@
-import { ApiRouter } from "./apiRouter";
-import { RouteGateway } from "./routeGateway";
-import { RouteNode, RouteNodeArgs } from "./routeNode";
+import { ApiRouter } from "@/core/routes/apiRouter";
+import { RouteGateway } from "@/core/routes/routeGateway";
+import { RouteNode, RouteNodeArgs } from "@/core/routes/routeNode";
 import {
   ApiVersion,
   ApiVersionEnum,
@@ -9,7 +9,7 @@ import {
   RouteVersionFn,
   RoutesMiddlewareFn,
   apiVersions,
-} from "./types";
+} from "@/core/routes/types";
 
 export {
   ApiRouter,
