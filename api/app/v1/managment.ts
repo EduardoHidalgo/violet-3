@@ -1,7 +1,7 @@
-import { DomainRouteMainEntryFn } from "@/core/api/routes";
+import { RouteDomainFn } from "@/core/api/routes";
 import { Result } from "@/core/result";
 
-export const managementRoutes: DomainRouteMainEntryFn = (routeGateway) => {
+export const managementRoutes: RouteDomainFn = (routeGateway) => {
   const routeNode = routeGateway.register("management");
 
   routeNode.addEndpoint("get", "tests", async () => {
