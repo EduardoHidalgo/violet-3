@@ -35,6 +35,32 @@ Endpoints in Violet consist of the following components: "Version" of the API,
   authentication type, middleware chaining, type inference in route Request and 
   Response objects, etc.
  */
+export class ApiRouter<DomainGlobalUnion, RoutesGlobalUnion> {
+  private apiRouter: BaseApiRouter;
+
+  constructor(args: ApiRouterArgs) {
+    this.apiRouter = new BaseApiRouter(args);
+  }
+
+  /** Create a new {@link RouteGateway} where domains related to a particular
+   * API version can be registered.
+   *
+   * @returns the RouteGateway instance, required by
+   * {@link RouteDomainFn} function.
+   */
+  register = <
+    DomainUnion extends DomainGlobalUnion,
+    RoutesUnion extends RoutesGlobalUnion
+  >(args: {
+    version: ApiVersion;
+  }): RouteGateway<DomainUnion, RoutesUnion> => this.apiRouter.register(args);
+
+  /** Consume all {@link RouteGateway}'s and apply Express.Router instances on
+   * top of the Express app.
+   */
+  turnOn = () => this.apiRouter.turnOn();
+}
+
 export class BaseApiRouter {
   scope: BaseApiRouter;
   app: Express;
@@ -267,49 +293,4 @@ export class BaseApiRouter {
 
     return false;
   }
-}
-
-/** Main class responsible for the creation, management and configuration of API
- * routes. His main responsibility is to ensure that all defined endpoint paths 
- * comply with the RESTful architecture principle, and comply with the Violet 
- * architecture principles. As a secondary feature, it automates many API route 
- * implementations and configurations, saving a lot of boilerplate code, which 
- * is replaced by more verbose, readable, and declarative code. Finally it 
- * provides its own internal method to log the tree of registered endpoints.
-
-Endpoints in Violet consist of the following components: "Version" of the API, 
-"Domain" they belong to, "Verb" of the endpoint, and "path" of the endpoint.
-
-- Prevents accidentally declaring two endpoints whose components are identical.
-- Prevents declaring two equal API versions.
-- Prevents declaring two equal Domains.
-- Only allows certain specific verbs.
-- Automates the implementation of aspects of the Violet architecture such as 
-  authentication type, middleware chaining, type inference in route Request and 
-  Response objects, etc.
- */
-export class ApiRouter<DomainGlobalUnion, RoutesGlobalUnion> {
-  private apiRouter: BaseApiRouter;
-
-  constructor(args: ApiRouterArgs) {
-    this.apiRouter = new BaseApiRouter(args);
-  }
-
-  /** Create a new {@link RouteGateway} where domains related to a particular
-   * API version can be registered.
-   *
-   * @returns the RouteGateway instance, required by
-   * {@link RouteDomainFn} function.
-   */
-  register = <
-    DomainUnion extends DomainGlobalUnion,
-    RoutesUnion extends RoutesGlobalUnion
-  >(args: {
-    version: ApiVersion;
-  }): RouteGateway<DomainUnion, RoutesUnion> => this.apiRouter.register(args);
-
-  /** Consume all {@link RouteGateway}'s and apply Express.Router instances on
-   * top of the Express app.
-   */
-  turnOn = () => this.apiRouter.turnOn();
 }

@@ -1,6 +1,5 @@
-import { RouteDomainFn } from "@/core/routes";
 import { Result } from "@/core/result";
-import { RouteGatewayType } from "@/routes/v1";
+import { RouteDomainFn } from "@/core/routes";
 
 export type ClientDomain = "clients";
 const domain: ClientDomain = "clients";
@@ -10,8 +9,10 @@ export enum ClientRoutes {
   get = "clients/:clientId",
 }
 
-export const clientRoutes: RouteDomainFn = (routeGateway: RouteGatewayType) => {
-  const routeNode = routeGateway.register<ClientDomain, ClientRoutes>(domain);
+export const clientRoutes: RouteDomainFn<ClientDomain, ClientRoutes> = (
+  routeGateway
+) => {
+  const routeNode = routeGateway.register(domain);
 
   routeNode.addEndpoint("get", ClientRoutes.get, async () => {
     return new Result({ code: 200, isSuccess: true });

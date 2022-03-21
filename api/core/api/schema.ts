@@ -46,6 +46,7 @@ export namespace SchemaError {
         error: e ? e.details : null,
         message: "Bad query request error ocurred.",
         type: `${QueryException.name}`,
+        // TODO add detail and solution explanations
       });
     }
   }

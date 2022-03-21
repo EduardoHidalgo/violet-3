@@ -11,14 +11,14 @@ export type RoutesMiddlewareFn = (app: Express) => void;
 /** Type of function that should be used to define the route functions in
  * charge of declaring a new api version.
  */
-export type RouteVersionFn = <DomainGlobalUnion, RoutesGlobalUnion>(
+export type RouteVersionFn<DomainGlobalUnion, RoutesGlobalUnion> = (
   apiRouter: ApiRouter<DomainGlobalUnion, RoutesGlobalUnion>
 ) => void;
 
 /** Type of function that should be used to define the route functions in
  * charge of declaring the endpoints of a particular domain.
  */
-export type RouteDomainFn = <DomainUnion, RoutesUnion>(
+export type RouteDomainFn<DomainUnion, RoutesUnion> = (
   routeGateway: RouteGateway<DomainUnion, RoutesUnion>
 ) => void;
 

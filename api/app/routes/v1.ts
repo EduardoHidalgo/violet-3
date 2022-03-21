@@ -1,5 +1,4 @@
-import { RouteGateway, RouteVersionFn } from "@/core/routes";
-import { ApiRouterType } from "@/middlewares";
+import { RouteVersionFn } from "@/core/routes";
 
 import { clientRoutes, ClientDomain, ClientRoutes } from "@/api/v1/clients";
 import {
@@ -11,16 +10,10 @@ import {
 export type V1DomainUnionType = ClientDomain | ManagementDomain;
 export type V1EndpointRouteUnionType = ClientRoutes | ManagementRoutes;
 
-export type RouteGatewayType = RouteGateway<
-  V1DomainUnionType,
-  V1EndpointRouteUnionType
->;
-
-export const v1: RouteVersionFn = (apiRouter: ApiRouterType) => {
-  const routeGateway = apiRouter.register<
-    V1DomainUnionType,
-    V1EndpointRouteUnionType
-  >({
+export const v1: RouteVersionFn<V1DomainUnionType, V1EndpointRouteUnionType> = (
+  apiRouter
+) => {
+  const routeGateway = apiRouter.register({
     version: "v1",
   });
 

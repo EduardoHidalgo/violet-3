@@ -1,6 +1,5 @@
-import { RouteDomainFn } from "@/core/routes";
 import { Result } from "@/core/result";
-import { RouteGatewayType } from "@/routes/v1";
+import { RouteDomainFn } from "@/core/routes";
 
 export type ManagementDomain = "management";
 const domain: ManagementDomain = "management";
@@ -10,12 +9,11 @@ export enum ManagementRoutes {
   get = "management/:managementId",
 }
 
-export const managementRoutes: RouteDomainFn = (
-  routeGateway: RouteGatewayType
-) => {
-  const routeNode = routeGateway.register<ManagementDomain, ManagementRoutes>(
-    domain
-  );
+export const managementRoutes: RouteDomainFn<
+  ManagementDomain,
+  ManagementRoutes
+> = (routeGateway) => {
+  const routeNode = routeGateway.register(domain);
 
   routeNode.addEndpoint("get", ManagementRoutes.get, async () => {
     return new Result({ code: 200, isSuccess: true });

@@ -29,6 +29,21 @@ export interface RouteEndpoint<Routes> {
   verb: RestVerb;
 }
 
+export class RouteNode<Domain, Routes> {
+  private routeNode: HiddenRouteNode<Domain, Routes>;
+
+  constructor(routeNode: HiddenRouteNode<Domain, Routes>) {
+    this.routeNode = routeNode;
+  }
+
+  addEndpoint = (
+    verb: RestVerb,
+    route: Routes,
+    moduleOperation?: ModuleOperation | undefined,
+    args?: ProxyRouterArgs | undefined
+  ) => this.routeNode.addEndpoint(verb, route, moduleOperation, args);
+}
+
 /** Arguments required when {@link ProxyRouteNode} class is instanciated. */
 export interface RouteNodeArgs<Domain> {
   scope: BaseApiRouter;
@@ -168,19 +183,4 @@ export class HiddenRouteNode<Domain, Routes> {
   ): Promise<ResponseBase<Empty>> => {
     return res.status(ServerErrorCode["NOT-IMPLEMENTED"]).send();
   };
-}
-
-export class RouteNode<Domain, Routes> {
-  private routeNode: HiddenRouteNode<Domain, Routes>;
-
-  constructor(routeNode: HiddenRouteNode<Domain, Routes>) {
-    this.routeNode = routeNode;
-  }
-
-  addEndpoint = (
-    verb: RestVerb,
-    route: Routes,
-    moduleOperation?: ModuleOperation | undefined,
-    args?: ProxyRouterArgs | undefined
-  ) => this.routeNode.addEndpoint(verb, route, moduleOperation, args);
 }

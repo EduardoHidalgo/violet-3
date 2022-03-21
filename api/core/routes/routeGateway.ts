@@ -13,6 +13,18 @@ interface RouteGatewayArgs {
   version: ApiVersion;
 }
 
+export class RouteGateway<DomainUnion, RoutesUnion> {
+  private routeGateway: BaseRouteGateway;
+
+  constructor(routeGateway: BaseRouteGateway) {
+    this.routeGateway = routeGateway;
+  }
+
+  register = <Domain extends DomainUnion, Routes extends RoutesUnion>(
+    domain: string
+  ): RouteNode<Domain, Routes> => this.routeGateway.register(domain);
+}
+
 export class BaseRouteGateway {
   nodes: Array<HiddenRouteNode<unknown, unknown>>;
   router: Router;
@@ -62,16 +74,4 @@ export class BaseRouteGateway {
 
     return new RouteNode<Domain, Routes>(node);
   }
-}
-
-export class RouteGateway<DomainUnion, RoutesUnion> {
-  private routeGateway: BaseRouteGateway;
-
-  constructor(routeGateway: BaseRouteGateway) {
-    this.routeGateway = routeGateway;
-  }
-
-  register = <Domain extends DomainUnion, Routes extends RoutesUnion>(
-    domain: string
-  ): RouteNode<Domain, Routes> => this.routeGateway.register(domain);
 }
