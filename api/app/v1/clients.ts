@@ -2,6 +2,7 @@ import { RouteDomainFn } from "@/core/routes";
 import { Result } from "@/core/result";
 
 export type ClientDomain = "clients";
+const domain: ClientDomain = "clients";
 
 export enum ClientRoutes {
   getMany = "clients/",
@@ -9,29 +10,13 @@ export enum ClientRoutes {
 }
 
 export const clientRoutes: RouteDomainFn = (routeGateway) => {
-  const routeNode = routeGateway.register("clients");
+  const routeNode = routeGateway.register<ClientDomain, ClientRoutes>(domain);
 
-  routeNode.addEndpoint("get", "tests", async () => {
+  routeNode.addEndpoint("get", ClientRoutes.get, async () => {
     return new Result({ code: 200, isSuccess: true });
   });
 
-  routeNode.addEndpoint("post", "tests", async () => {
-    return new Result({ code: 200, isSuccess: true });
-  });
-
-  routeNode.addEndpoint("put", "tests", async () => {
-    return new Result({ code: 200, isSuccess: true });
-  });
-
-  routeNode.addEndpoint("put", "tests", async () => {
-    return new Result({ code: 200, isSuccess: true });
-  });
-
-  routeNode.addEndpoint("put", "testsss", async () => {
-    return new Result({ code: 200, isSuccess: true });
-  });
-
-  routeNode.addEndpoint("put", "testsxxxx", async () => {
+  routeNode.addEndpoint("get", ClientRoutes.getMany, async () => {
     return new Result({ code: 200, isSuccess: true });
   });
 };

@@ -19,7 +19,7 @@ export class RouteLogger {
    * Version > Domain > Verb > Path.
    */
   private static sort(
-    baseNodes: Array<HiddenRouteNode>,
+    baseNodes: Array<HiddenRouteNode<unknown, unknown>>,
     gateways: Array<BaseRouteGateway>
   ): Array<LoggableEndpoint> {
     // Simplified list of endpoints.
@@ -31,7 +31,7 @@ export class RouteLogger {
         for (const endpoint of node.endpoints) {
           list.push({
             domain: String(node.domain),
-            uri: endpoint.uri,
+            uri: String(endpoint.uri),
             verb: endpoint.verb,
             version: gateway.version,
           });
@@ -45,7 +45,7 @@ export class RouteLogger {
       for (const endpoint of node.endpoints) {
         list.push({
           domain: "base",
-          uri: endpoint.uri,
+          uri: String(endpoint.uri),
           verb: endpoint.verb,
           // "--" string is used as placeholder if endpoint has no version
           version: node.version ? node.version : "--",
@@ -128,7 +128,7 @@ export class RouteLogger {
   /** Create a unique log that includes all endpoints registered successfully.
    */
   static log(
-    baseNodes: Array<HiddenRouteNode>,
+    baseNodes: Array<HiddenRouteNode<unknown, unknown>>,
     gateways: Array<BaseRouteGateway>
   ): void {
     try {
@@ -155,7 +155,7 @@ export class RouteLogger {
         let log = "List of Endpoints routed: \n";
 
         // Append each endpoint on the same log string, so it only log once.
-        loggableEndpoints.forEach((e) => {
+        loggableEndpoints.forEach((e, index) => {
           // Determine counters for spacing, just beauty logs.
           const domainSpacedCount = domainLongestLength - e.domain.length;
           const verbSpacedCount = verbLongestLength - e.verb.length;
@@ -173,7 +173,9 @@ export class RouteLogger {
           log += `${e.version} `;
           log += `${e.domain}${domainSpaced} -> `;
           log += `${e.verb.toUpperCase()}${verbSpaced} `;
-          log += `${e.uri}${uriSpaced} \n`;
+          log += `${e.uri}${uriSpaced} `;
+          // Remove last breakline on last iteration
+          log += index != loggableEndpoints.length - 1 ? "\n" : "";
         });
 
         // Log endpoints.

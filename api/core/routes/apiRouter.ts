@@ -40,7 +40,7 @@ export class BaseApiRouter {
   app: Express;
   basePath: string;
   gateways: Array<BaseRouteGateway>;
-  baseNodes: Array<HiddenRouteNode>;
+  baseNodes: Array<HiddenRouteNode<unknown, unknown>>;
 
   constructor(args: ApiRouterArgs) {
     const { app } = args;

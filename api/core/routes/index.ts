@@ -24,3 +24,51 @@ export {
   RoutesMiddlewareFn,
   apiVersions,
 };
+
+enum A {
+  a = "a",
+  b = "b",
+  c = "c",
+}
+
+enum B {
+  d = "d",
+  e = "e",
+  f = "f",
+}
+
+enum C {
+  g = "g",
+  h = "h",
+  i = "i",
+}
+
+enum D {
+  z = "z",
+}
+
+type UnionT = A | B | C;
+
+class UnionClass<T> {
+  list: Array<SingleClass<T>>;
+
+  constructor() {
+    this.list = [];
+  }
+}
+
+class SingleClass<T> {
+  t: T;
+
+  constructor(t: T) {
+    this.t = t;
+  }
+
+  register<T>(t: T) {
+    console.log(t);
+  }
+}
+
+const union = new UnionClass<UnionT>();
+
+union.list.push(new SingleClass<B>(B.d));

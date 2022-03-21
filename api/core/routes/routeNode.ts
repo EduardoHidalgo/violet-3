@@ -24,33 +24,33 @@ type ModuleOperation = <Req, Dto>(
  */
 interface ProxyRouterArgs {}
 
-export interface RouteEndpoint {
-  uri: string;
+export interface RouteEndpoint<Routes> {
+  uri: Routes;
   verb: RestVerb;
 }
 
 /** Arguments required when {@link ProxyRouteNode} class is instanciated. */
-export interface RouteNodeArgs {
+export interface RouteNodeArgs<Domain> {
   scope: BaseApiRouter;
   basePath: string;
   isDuplicated: boolean;
   router: Router;
-  domain?: string;
+  domain?: Domain;
   version?: ApiVersion;
 }
 
 // TODO add comments
-export class HiddenRouteNode {
-  domain?: string;
+export class HiddenRouteNode<Domain, Routes> {
+  domain?: Domain;
   version?: ApiVersion;
 
   basePath: string;
-  endpoints: Array<RouteEndpoint>;
+  endpoints: Array<RouteEndpoint<Routes>>;
   isDuplicated: boolean;
   router: Router;
   scope: BaseApiRouter;
 
-  constructor(args: RouteNodeArgs) {
+  constructor(args: RouteNodeArgs<Domain>) {
     const { basePath, domain, isDuplicated, router, scope, version } = args;
 
     this.basePath = basePath;
@@ -66,7 +66,7 @@ export class HiddenRouteNode {
   // TODO add comments
   addEndpoint(
     verb: RestVerb,
-    route: string,
+    route: Routes,
     moduleOperation?: ModuleOperation,
     args?: ProxyRouterArgs
   ): void {
@@ -78,22 +78,22 @@ export class HiddenRouteNode {
 
     // Validate if this endpoint actually exists.
     const isDuplicated = this.scope.hasUriDuplicity({
-      domain: this.domain,
+      domain: String(this.domain),
       version: this.version,
-      uri,
+      uri: uri,
       verb,
     });
 
     if (isDuplicated || this.isDuplicated) return;
 
-    this.endpoints.push({ uri, verb });
+    this.endpoints.push({ uri: uri as unknown as Routes, verb });
 
     return this.proxy(this.router, verb, uri, moduleOperation, args);
   }
 
   // TODO add comments
   addBaseEndpoint(uri: string) {
-    this.endpoints.push({ uri, verb: "get" });
+    this.endpoints.push({ uri: uri as unknown as Routes, verb: "get" });
 
     this.router.get(uri, (_: Request, res: Response) => {
       return res.status(200).send(PING_MESSAGE);
@@ -102,7 +102,7 @@ export class HiddenRouteNode {
 
   // TODO add comments
   addMonitoringEndpoint(uri: string) {
-    this.endpoints.push({ uri, verb: "get" });
+    this.endpoints.push({ uri: uri as unknown as Routes, verb: "get" });
 
     this.router.get(uri, (_: Request, __: Response) => {
       throw new RouteError.MonitoringFalsePositiveException();
@@ -170,16 +170,16 @@ export class HiddenRouteNode {
   };
 }
 
-export class RouteNode {
-  private routeNode: HiddenRouteNode;
+export class RouteNode<Domain, Routes> {
+  private routeNode: HiddenRouteNode<Domain, Routes>;
 
-  constructor(routeNode: HiddenRouteNode) {
+  constructor(routeNode: HiddenRouteNode<Domain, Routes>) {
     this.routeNode = routeNode;
   }
 
   addEndpoint = (
     verb: RestVerb,
-    route: string,
+    route: Routes,
     moduleOperation?: ModuleOperation | undefined,
     args?: ProxyRouterArgs | undefined
   ) => this.routeNode.addEndpoint(verb, route, moduleOperation, args);

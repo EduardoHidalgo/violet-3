@@ -14,7 +14,7 @@ interface RouteGatewayArgs {
 }
 
 export class BaseRouteGateway {
-  nodes: Array<HiddenRouteNode>;
+  nodes: Array<HiddenRouteNode<unknown, unknown>>;
   router: Router;
   version: ApiVersion;
 
@@ -36,7 +36,7 @@ export class BaseRouteGateway {
   }
 
   // TODO add comments
-  register(domain: string): RouteNode {
+  register<Domain, Routes>(domain: string): RouteNode<Domain, Routes> {
     this.domain = domain;
 
     // Validate if this routeNode actually exists.
@@ -49,18 +49,18 @@ export class BaseRouteGateway {
       ? this.isDuplicated
       : isDomainDuplicated;
 
-    const node = new HiddenRouteNode({
+    const node = new HiddenRouteNode<Domain, Routes>({
       scope: this.scope,
       basePath: this.basePath,
       router: this.router,
       version: this.version,
-      domain,
+      domain: domain as unknown as Domain,
       isDuplicated,
     });
 
     this.nodes.push(node);
 
-    return new RouteNode(node);
+    return new RouteNode<Domain, Routes>(node);
   }
 }
 
@@ -71,5 +71,6 @@ export class RouteGateway {
     this.routeGateway = routeGateway;
   }
 
-  register = (domain: string): RouteNode => this.routeGateway.register(domain);
+  register = <Domain, Routes>(domain: string): RouteNode<Domain, Routes> =>
+    this.routeGateway.register(domain);
 }
