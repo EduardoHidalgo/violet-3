@@ -1,5 +1,6 @@
 import { Parser } from "@/libs/utils/parser";
 import { BaseError } from "@/core/error";
+
 import {
   EnvVar,
   EnvironmentError,
@@ -17,6 +18,7 @@ interface PrimitiveEnvsExtension {
   readonly SERVER_ENVIRONMENT: EnvVar;
   readonly SERVER_ENV_DEBUG: EnvVar;
   readonly SERVER_LOG_ENVIRONMENT: EnvVar;
+  readonly SERVER_LOG_ROUTING_TREE: EnvVar;
   readonly SERVER_NAME: EnvVar;
   readonly SERVER_PORT: EnvVar;
   readonly SERVER_RATE_LIMIT_MAX_REQUESTS: EnvVar;
@@ -65,6 +67,10 @@ class EnvironmentValidator {
       this.envs.SERVER_LOG_ENVIRONMENT,
       "SERVER_LOG_ENVIRONMENT"
     );
+    this.checkUndefined(
+      this.envs.SERVER_LOG_ROUTING_TREE,
+      "SERVER_LOG_ROUTING_TREE"
+    );
     this.checkUndefined(this.envs.SERVER_NAME, "SERVER_NAME");
     this.checkUndefined(this.envs.SERVER_PORT, "SERVER_PORT");
     this.checkUndefined(
@@ -104,6 +110,7 @@ export class EnvManager {
   server: {
     ENVIRONMENT: ServerEnvironmentType;
     LOG_ENVIRONMENT: boolean;
+    LOG_ROUTING_TREE: boolean;
     NAME: string;
     NODE_ENV: NodeEnvironmentType;
     PORT: number;
@@ -130,6 +137,7 @@ export class EnvManager {
     this.server = {
       ENVIRONMENT: envs.SERVER_ENVIRONMENT as ServerEnvironmentType,
       LOG_ENVIRONMENT: Parser.stringToBool(envs.SERVER_LOG_ENVIRONMENT),
+      LOG_ROUTING_TREE: Parser.stringToBool(envs.SERVER_LOG_ROUTING_TREE),
       NAME: String(envs.SERVER_NAME),
       NODE_ENV: envs.NODE_ENV as NodeEnvironmentType,
       PORT: Number(envs.SERVER_PORT),

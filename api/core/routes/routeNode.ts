@@ -1,18 +1,19 @@
 import { Request, Response, Router } from "express";
 
 import { environment } from "@/environment";
-import { Empty, ResponseBase } from "@/core/api/api";
-import { Result } from "@/core/index";
-import { ServerErrorCode } from "@/core/error";
 import { Logger } from "@/libs/logger";
+import { Empty, ResponseBase } from "@/core/api/api";
+import { ServerErrorCode } from "@/core/error";
+import { Result } from "@/core/index";
 
-import { BaseApiRouter } from "@/core/routes/apiRouter";
+import { AbstractApiRouter } from "@/core/routes/apiRouter";
 import { RouteError } from "@/core/routes/errors";
 import { ApiVersion, RestVerb } from "@/core/routes/types";
 
 const PING_MESSAGE = `[API Online] Target: ${environment.server.ENVIRONMENT}`;
 
-/** Generic typing to infer the type of response from endpoints. */
+/** Generic typing to infer the type of response from endpoints.
+ */
 type ModuleOperation = <Req, Dto>(
   req: Req,
   res: ResponseBase<Dto>
@@ -24,18 +25,49 @@ type ModuleOperation = <Req, Dto>(
  */
 interface ProxyRouterArgs {}
 
+/** Interface that models the information that is persisted from registered
+ * endpoints.
+ */
 export interface RouteEndpoint<Routes> {
   uri: Routes;
   verb: RestVerb;
 }
 
-export class RouteNode<Domain, Routes> {
-  private routeNode: HiddenRouteNode<Domain, Routes>;
+/** Arguments required when {@link ProxyRouteNode} class is instanciated.
+ */
+export interface RouteNodeArgs<Domain> {
+  basePath: string;
+  isDuplicated: boolean;
+  router: Router;
+  scopeReference: AbstractApiRouter;
+  domain?: Domain;
+  version?: ApiVersion;
+}
 
-  constructor(routeNode: HiddenRouteNode<Domain, Routes>) {
+/** Class in charge of managing the creation of endpoints complying with the
+ * necessary RESTful rules and providing all the secondary implementations and
+ * middlewares.
+ */
+export class RouteNode<Domain, Routes> {
+  private routeNode: AbstractRouteNode<Domain, Routes>;
+
+  constructor(routeNode: AbstractRouteNode<Domain, Routes>) {
     this.routeNode = routeNode;
   }
 
+  /** Create a new endpoint, validating that its RESTful properties are not
+   * repeated and no identical endpoint exists (which is considered an endpoint
+   * collision). Through the "args" property, additional endpoint behaviors can
+   * be configured.
+   *
+   * @param verb REST verb.
+   * @param route String route.
+   * @param moduleOperation Function that will be called every time the endpoint
+   * is called.
+   * @param args Additional arguments for custom behaviours.
+   * @returns The result of every endpoint is an object of type Result with the
+   * response DTO, or failing that, with an object of type BaseError.
+   */
   addEndpoint = (
     verb: RestVerb,
     route: Routes,
@@ -44,47 +76,39 @@ export class RouteNode<Domain, Routes> {
   ) => this.routeNode.addEndpoint(verb, route, moduleOperation, args);
 }
 
-/** Arguments required when {@link ProxyRouteNode} class is instanciated. */
-export interface RouteNodeArgs<Domain> {
-  scope: BaseApiRouter;
-  basePath: string;
-  isDuplicated: boolean;
-  router: Router;
-  domain?: Domain;
-  version?: ApiVersion;
-}
-
-// TODO add comments
-export class HiddenRouteNode<Domain, Routes> {
-  domain?: Domain;
-  version?: ApiVersion;
-
+/** Parent abstract class of {@link RouteNode} that provides the implementations
+ * and exposes them to the other abstract classes.
+ */
+export class AbstractRouteNode<Domain, Routes> {
   basePath: string;
   endpoints: Array<RouteEndpoint<Routes>>;
   isDuplicated: boolean;
   router: Router;
-  scope: BaseApiRouter;
+  scopeReference: AbstractApiRouter;
+  domain?: Domain;
+  version?: ApiVersion;
 
   constructor(args: RouteNodeArgs<Domain>) {
-    const { basePath, domain, isDuplicated, router, scope, version } = args;
+    const { basePath, domain, isDuplicated, router, scopeReference, version } =
+      args;
 
     this.basePath = basePath;
     this.domain = domain;
     this.isDuplicated = isDuplicated;
     this.router = router;
-    this.scope = scope;
+    this.scopeReference = scopeReference;
     this.version = version;
 
     this.endpoints = [];
   }
 
-  // TODO add comments
   addEndpoint(
     verb: RestVerb,
     route: Routes,
     moduleOperation?: ModuleOperation,
     args?: ProxyRouterArgs
   ): void {
+    // API route construction. All routes are formed by this formula.
     const uri = `${this.basePath}/${this.version}/${route}`;
 
     // Abort adding endpoint if domain value is undefined.
@@ -92,7 +116,7 @@ export class HiddenRouteNode<Domain, Routes> {
       return Logger.warning(new RouteError.UndefinedDomainException());
 
     // Validate if this endpoint actually exists.
-    const isDuplicated = this.scope.hasUriDuplicity({
+    const isDuplicated = this.scopeReference.hasUriDuplicity({
       domain: String(this.domain),
       version: this.version,
       uri: uri,
@@ -106,7 +130,10 @@ export class HiddenRouteNode<Domain, Routes> {
     return this.proxy(this.router, verb, uri, moduleOperation, args);
   }
 
-  // TODO add comments
+  /** Create the basic routes used for health checks and availability pings.
+   *
+   * @param uri Route string.
+   */
   addBaseEndpoint(uri: string) {
     this.endpoints.push({ uri: uri as unknown as Routes, verb: "get" });
 
@@ -115,7 +142,11 @@ export class HiddenRouteNode<Domain, Routes> {
     });
   }
 
-  // TODO add comments
+  /** Creates the dedicated route for life verification of the monitoring
+   * systems.
+   *
+   * @param uri Route string.
+   */
   addMonitoringEndpoint(uri: string) {
     this.endpoints.push({ uri: uri as unknown as Routes, verb: "get" });
 
@@ -128,12 +159,14 @@ export class HiddenRouteNode<Domain, Routes> {
    * reduces middleware implementation by applying a Proxy structural pattern.
    *
    * @TODO add descriptions to params
-   * @param router
-   * @param verb
-   * @param uri
-   * @param moduleOperation
-   * @param args
-   * @returns
+   * @param router Express Router instance.
+   * @param verb Rest verb.
+   * @param uri Route string.
+   * @param moduleOperation Function that will be called every time the endpoint
+   * is called.
+   * @param args Additional arguments for custom behaviours.
+   * @returns The result of every endpoint is an object of type Result with the
+   * response DTO, or failing that, with an object of type BaseError.
    */
   private proxy(
     router: Router,

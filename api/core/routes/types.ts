@@ -22,7 +22,8 @@ export type RouteDomainFn<DomainUnion, RoutesUnion> = (
   routeGateway: RouteGateway<DomainUnion, RoutesUnion>
 ) => void;
 
-// TODO add comments
+/** API version numbers enable for use by the {@link ApiRouter} class.
+ */
 export enum ApiVersionEnum {
   v1 = "v1",
   v2 = "v2",
@@ -39,7 +40,9 @@ export const apiVersions = Object.values(ApiVersionEnum);
 
 export type ApiVersion = keyof typeof ApiVersionEnum;
 
-// TODO add comments
+/** REST verbs supported by express.js and therefore available for use through
+ * the {@link ApiRouter} class in creating endpoints.
+ */
 export type RestVerb =
   | "all"
   | "delete"

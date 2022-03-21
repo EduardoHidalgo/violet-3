@@ -3,15 +3,13 @@ import { Express, Router } from "express";
 import { environment } from "@/environment";
 import { Logger } from "@/libs/logger";
 
-import { ApiVersion, RestVerb } from "@/core/routes/types";
-import { BaseRouteGateway, RouteGateway } from "@/core/routes/routeGateway";
-import { HiddenRouteNode } from "@/core/routes/routeNode";
+import { ApiVersion, RestVerb, RouteDomainFn } from "@/core/routes/types";
+import { AbstractRouteGateway, RouteGateway } from "@/core/routes/routeGateway";
+import { AbstractRouteNode } from "@/core/routes/routeNode";
 import { RouteError } from "@/core/routes/errors";
 import { RouteLogger } from "@/core/routes/routeLogger";
 
-// TODO add environment variable for logs + add logs
-
-/** Arguments required when {@link BaseApiRouter} class is instanciated. */
+/** Arguments required when {@link AbstractApiRouter} class is instanciated. */
 interface ApiRouterArgs {
   app: Express;
 }
@@ -24,7 +22,7 @@ interface ApiRouterArgs {
  * is replaced by more verbose, readable, and declarative code. Finally it 
  * provides its own internal method to log the tree of registered endpoints.
 
-Endpoints in Violet consist of the following components: "Version" of the API, 
+Endpoints object consist of the following components: "Version" of the API, 
 "Domain" they belong to, "Verb" of the endpoint, and "path" of the endpoint.
 
 - Prevents accidentally declaring two endpoints whose components are identical.
@@ -36,10 +34,10 @@ Endpoints in Violet consist of the following components: "Version" of the API,
   Response objects, etc.
  */
 export class ApiRouter<DomainGlobalUnion, RoutesGlobalUnion> {
-  private apiRouter: BaseApiRouter;
+  private apiRouter: AbstractApiRouter;
 
   constructor(args: ApiRouterArgs) {
-    this.apiRouter = new BaseApiRouter(args);
+    this.apiRouter = new AbstractApiRouter(args);
   }
 
   /** Create a new {@link RouteGateway} where domains related to a particular
@@ -61,17 +59,20 @@ export class ApiRouter<DomainGlobalUnion, RoutesGlobalUnion> {
   turnOn = () => this.apiRouter.turnOn();
 }
 
-export class BaseApiRouter {
-  scope: BaseApiRouter;
+/** Parent abstract class of {@link ApiRouter} that provides the implementations
+ * and exposes them to the other abstract classes.
+ */
+export class AbstractApiRouter {
   app: Express;
+  baseNodes: Array<AbstractRouteNode<unknown, unknown>>;
   basePath: string;
-  gateways: Array<BaseRouteGateway>;
-  baseNodes: Array<HiddenRouteNode<unknown, unknown>>;
+  gateways: Array<AbstractRouteGateway>;
+  scopeReference: AbstractApiRouter;
 
   constructor(args: ApiRouterArgs) {
     const { app } = args;
 
-    this.scope = this;
+    this.scopeReference = this;
     this.app = app;
     this.gateways = [];
     this.baseNodes = [];
@@ -82,24 +83,18 @@ export class BaseApiRouter {
     this.addBaseEndpoints(router);
   }
 
-  /** Create a new {@link RouteGateway} where domains related to a particular
-   * API version can be registered.
-   *
-   * @returns the RouteGateway instance, required by
-   * {@link RouteDomainFn} function.
-   */
   register<DomainUnion, RoutesUnion>(args: {
     version: ApiVersion;
   }): RouteGateway<DomainUnion, RoutesUnion> {
     const { version } = args;
 
     // Check if this version doesn't exists already.
-    const isDuplicated = this.scope.hasVersionDuplicity(version);
+    const isDuplicated = this.scopeReference.hasVersionDuplicity(version);
 
     const router = Router();
 
-    const gateway = new BaseRouteGateway({
-      scope: this.scope,
+    const gateway = new AbstractRouteGateway({
+      scopeReference: this.scopeReference,
       basePath: this.basePath,
       isDuplicated: isDuplicated,
       router,
@@ -115,9 +110,6 @@ export class BaseApiRouter {
     return new RouteGateway(gateway);
   }
 
-  /** Consume all {@link RouteGateway}'s and apply Express.Router instances on
-   * top of the Express app.
-   */
   turnOn() {
     for (const gateway of this.gateways) {
       try {
@@ -128,18 +120,18 @@ export class BaseApiRouter {
     }
 
     // Log all registered endpoints successfully.
-    RouteLogger.log(this.baseNodes, this.gateways);
+    if (environment.server.LOG_ROUTING_TREE)
+      RouteLogger.log(this.baseNodes, this.gateways);
   }
 
   /** Creates base endpoints used for health checks through third-party
    * monitoring systems.
    *
    * @param router Express Router instance.
-   * @param version API Version used.
    */
   addBaseEndpoints(router: Router) {
-    const node = new HiddenRouteNode({
-      scope: this.scope,
+    const node = new AbstractRouteNode({
+      scopeReference: this.scopeReference,
       basePath: this.basePath,
       isDuplicated: false,
       router,
@@ -158,8 +150,8 @@ export class BaseApiRouter {
    * @param version API Version used.
    */
   addGatewayBaseEndpoints(router: Router, version: ApiVersion): void {
-    const node = new HiddenRouteNode({
-      scope: this.scope,
+    const node = new AbstractRouteNode({
+      scopeReference: this.scopeReference,
       basePath: this.basePath,
       isDuplicated: false,
       router,
@@ -215,7 +207,7 @@ export class BaseApiRouter {
   }
 
   /** Validates that the domain, uri, verb and version you want to use to create
-   * a new {@link RouteEndpoint} that does not currently exist.
+   * a new {@link RouteEndpoint} doesn't exists already.
    *
    * @returns true if already exists.
    */
@@ -231,12 +223,18 @@ export class BaseApiRouter {
     if (version === undefined || domain === undefined)
       return this.checkBaseEndpointDuplicity(uri, verb);
 
-    return this.checkCommonEndpointDuplicity(domain, uri, verb, version);
+    return this.checkEndpointDuplicity(domain, uri, verb, version);
   }
 
-  // TODO add comments
+  /** Verifies that the endpoint you are trying to register is not duplicated in
+   * the list of registered base routes.
+   *
+   * @param uri Route string.
+   * @param verb Rest verb.
+   * @returns true if the uri and verb combination already exists.
+   */
   private checkBaseEndpointDuplicity(uri: string, verb: RestVerb): boolean {
-    for (const node of this.scope.baseNodes) {
+    for (const node of this.scopeReference.baseNodes)
       for (const endpoint of node.endpoints) {
         // If this endpoint has the same uri and verb, means already exists.
         if (endpoint.uri == uri && endpoint.verb == verb) {
@@ -245,13 +243,21 @@ export class BaseApiRouter {
           return true;
         }
       }
-    }
 
     return false;
   }
 
-  // TODO add comments
-  private checkCommonEndpointDuplicity(
+  /** Validates that the domain, uri, verb and version you want to use to create
+   * a new {@link RouteEndpoint} doesn't exists already.
+   *
+   * @param domain Domain string.
+   * @param uri Route string.
+   * @param verb Rest verb.
+   * @param version Version number.
+   * @returns true if the domain, uri, verb and version combination already
+   * exists.
+   */
+  private checkEndpointDuplicity(
     domain: string,
     uri: string,
     verb: RestVerb,
@@ -259,37 +265,30 @@ export class BaseApiRouter {
   ): boolean {
     const gateway = this.gateways.find((g) => g.version == version);
     if (gateway == undefined) {
-      const exception = new RouteError.VersionDoesntExistsFailure(version);
-      Logger.warning(exception);
+      Logger.warning(new RouteError.VersionDoesntExistsFailure(version));
 
       return true;
     }
 
     const node = gateway.nodes.find((n) => n.domain == domain);
     if (node == undefined) {
-      const exception = new RouteError.DomainDoesntExistsFailure(domain);
-      Logger.warning(exception);
+      Logger.warning(new RouteError.DomainDoesntExistsFailure(domain));
 
       return true;
     }
 
-    for (const node of gateway.nodes) {
+    for (const node of gateway.nodes)
       for (const endpoint of node.endpoints) {
         if (
           endpoint.uri == uri &&
           endpoint.verb == verb &&
           node.domain == domain
         ) {
-          const exception = new RouteError.DuplicatedEndpointException(
-            uri,
-            verb
-          );
-          Logger.warning(exception);
+          Logger.warning(new RouteError.DuplicatedEndpointException(uri, verb));
 
           return true;
         }
       }
-    }
 
     return false;
   }

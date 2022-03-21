@@ -1,44 +1,59 @@
 import { Router } from "express";
 
 import { ApiVersion } from "@/core/routes/types";
-import { BaseApiRouter } from "@/core/routes/apiRouter";
-import { HiddenRouteNode, RouteNode } from "@/core/routes/routeNode";
+import { AbstractApiRouter } from "@/core/routes/apiRouter";
+import { AbstractRouteNode, RouteNode } from "@/core/routes/routeNode";
 
-/** Arguments required when {@link BaseRouteGateway} class is instanciated. */
+/** Arguments required when {@link AbstractRouteGateway} class is instanciated. */
 interface RouteGatewayArgs {
-  scope: BaseApiRouter;
+  /** Reference to the parent BaseApiRouter instance. */
+  scopeReference: AbstractApiRouter;
+  /** Base route string. */
   basePath: string;
+  /** Boolean that represent the duplicated state of some invalid endpoint. */
   isDuplicated: boolean;
+  /** Express.js Router instance. */
   router: Router;
+  /** API version which belongs. */
   version: ApiVersion;
 }
 
+/** Class in charge of managing the common routing branch (according to a
+ * domain) for all the endpoints that belong to the same domain.
+ */
 export class RouteGateway<DomainUnion, RoutesUnion> {
-  private routeGateway: BaseRouteGateway;
+  private routeGateway: AbstractRouteGateway;
 
-  constructor(routeGateway: BaseRouteGateway) {
+  constructor(routeGateway: AbstractRouteGateway) {
     this.routeGateway = routeGateway;
   }
 
+  /** Create a new RouteNode for endpoint registration from a common domain.
+   *
+   * @param domain Domain string.
+   * @returns New RouteNode instance.
+   */
   register = <Domain extends DomainUnion, Routes extends RoutesUnion>(
     domain: string
   ): RouteNode<Domain, Routes> => this.routeGateway.register(domain);
 }
 
-export class BaseRouteGateway {
-  nodes: Array<HiddenRouteNode<unknown, unknown>>;
-  router: Router;
-  version: ApiVersion;
-
-  scope: BaseApiRouter;
+/** Parent abstract class of {@link RouteGateway} that provides the
+ * implementations and exposes them to the other abstract classes.
+ */
+export class AbstractRouteGateway {
   basePath: string;
   domain!: string;
   isDuplicated: boolean;
+  nodes: Array<AbstractRouteNode<unknown, unknown>>;
+  router: Router;
+  scopeReference: AbstractApiRouter;
+  version: ApiVersion;
 
   constructor(args: RouteGatewayArgs) {
-    const { scope, basePath, isDuplicated, router, version } = args;
+    const { scopeReference, basePath, isDuplicated, router, version } = args;
 
-    this.scope = scope;
+    this.scopeReference = scopeReference;
     this.basePath = basePath;
     this.isDuplicated = isDuplicated;
     this.router = router;
@@ -47,12 +62,11 @@ export class BaseRouteGateway {
     this.nodes = [];
   }
 
-  // TODO add comments
   register<Domain, Routes>(domain: string): RouteNode<Domain, Routes> {
     this.domain = domain;
 
     // Validate if this routeNode actually exists.
-    const isDomainDuplicated = this.scope.hasDomainDuplicity(
+    const isDomainDuplicated = this.scopeReference.hasDomainDuplicity(
       domain,
       this.version
     );
@@ -61,8 +75,8 @@ export class BaseRouteGateway {
       ? this.isDuplicated
       : isDomainDuplicated;
 
-    const node = new HiddenRouteNode<Domain, Routes>({
-      scope: this.scope,
+    const node = new AbstractRouteNode<Domain, Routes>({
+      scopeReference: this.scopeReference,
       basePath: this.basePath,
       router: this.router,
       version: this.version,

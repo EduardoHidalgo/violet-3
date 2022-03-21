@@ -1,8 +1,8 @@
 import { Logger } from "@/libs/logger";
 
 import { RouteError } from "@/core/routes/errors";
-import { BaseRouteGateway } from "@/core/routes/routeGateway";
-import { HiddenRouteNode } from "@/core/routes/routeNode";
+import { AbstractRouteGateway } from "@/core/routes/routeGateway";
+import { AbstractRouteNode } from "@/core/routes/routeNode";
 
 interface LoggableEndpoint {
   domain: string;
@@ -11,6 +11,10 @@ interface LoggableEndpoint {
   version: string;
 }
 
+/** Class responsible for creating a record of the list of available endpoints
+ * within the route tree of Express.js. Additionally, it performs a personalized
+ * ordering of the endpoints.
+ */
 export class RouteLogger {
   constructor() {}
 
@@ -19,8 +23,8 @@ export class RouteLogger {
    * Version > Domain > Verb > Path.
    */
   private static sort(
-    baseNodes: Array<HiddenRouteNode<unknown, unknown>>,
-    gateways: Array<BaseRouteGateway>
+    baseNodes: Array<AbstractRouteNode<unknown, unknown>>,
+    gateways: Array<AbstractRouteGateway>
   ): Array<LoggableEndpoint> {
     // Simplified list of endpoints.
     let list: Array<LoggableEndpoint> = [];
@@ -128,8 +132,8 @@ export class RouteLogger {
   /** Create a unique log that includes all endpoints registered successfully.
    */
   static log(
-    baseNodes: Array<HiddenRouteNode<unknown, unknown>>,
-    gateways: Array<BaseRouteGateway>
+    baseNodes: Array<AbstractRouteNode<unknown, unknown>>,
+    gateways: Array<AbstractRouteGateway>
   ): void {
     try {
       const loggableEndpoints = this.sort(baseNodes, gateways);
