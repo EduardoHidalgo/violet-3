@@ -1,6 +1,6 @@
 import { Express } from "express";
 
-import { ApiRouter, RouteGateway } from "@/core/api/routes";
+import { ApiRouter, RouteGateway } from "@/core/routes";
 
 /** Type of function that should be used to define the main route middleware,
  * where all {@link RouteVersionFn} are invoked. This middleware should

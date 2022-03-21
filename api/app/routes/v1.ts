@@ -1,4 +1,4 @@
-import { RouteVersionFn } from "@/core/api/routes";
+import { RouteVersionFn } from "@/core/routes";
 
 import { clientRoutes } from "@/api/v1/clients";
 import { managementRoutes } from "@/api/v1/managment";

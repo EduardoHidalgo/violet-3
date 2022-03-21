@@ -1,4 +1,4 @@
-import { RouteDomainFn } from "@/core/api/routes";
+import { RouteDomainFn } from "@/core/routes";
 import { Result } from "@/core/result";
 
 export const clientRoutes: RouteDomainFn = (routeGateway) => {

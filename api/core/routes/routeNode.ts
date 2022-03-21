@@ -6,9 +6,9 @@ import { Result } from "@/core/index";
 import { ServerErrorCode } from "@/core/error";
 import { Logger } from "@/libs/logger";
 
-import { BaseApiRouter } from "@/core/api/routes/apiRouter";
-import { RouteError } from "@/core/api/routes/errors";
-import { ApiVersion, RestVerb } from "@/core/api/routes/types";
+import { BaseApiRouter } from "@/core/routes/apiRouter";
+import { RouteError } from "@/core/routes/errors";
+import { ApiVersion, RestVerb } from "@/core/routes/types";
 
 const PING_MESSAGE = `[API Online] Target: ${environment.server.ENVIRONMENT}`;
 

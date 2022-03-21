@@ -1,8 +1,8 @@
 import { Router } from "express";
 
-import { ApiVersion } from "@/core/api/routes/types";
-import { BaseApiRouter } from "@/core/api/routes/apiRouter";
-import { HiddenRouteNode, RouteNode } from "@/core/api/routes/routeNode";
+import { ApiVersion } from "@/core/routes/types";
+import { BaseApiRouter } from "@/core/routes/apiRouter";
+import { HiddenRouteNode, RouteNode } from "@/core/routes/routeNode";
 
 /** Arguments required when {@link BaseRouteGateway} class is instanciated. */
 interface RouteGatewayArgs {

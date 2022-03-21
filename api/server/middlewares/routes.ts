@@ -1,5 +1,5 @@
 import { Logger } from "@/libs/logger";
-import { ApiRouter, RoutesMiddlewareFn } from "@/core/api/routes";
+import { ApiRouter, RoutesMiddlewareFn } from "@/core/routes";
 
 import { v1 } from "@/api/routes/v1";
 

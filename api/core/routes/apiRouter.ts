@@ -3,11 +3,11 @@ import { Express, Router } from "express";
 import { environment } from "@/environment";
 import { Logger } from "@/libs/logger";
 
-import { ApiVersion, RestVerb } from "@/core/api/routes/types";
-import { BaseRouteGateway, RouteGateway } from "@/core/api/routes/routeGateway";
-import { HiddenRouteNode } from "@/core/api/routes/routeNode";
-import { RouteError } from "@/core/api/routes/errors";
-import { RouteLogger } from "@/core/api/routes/routeLogger";
+import { ApiVersion, RestVerb } from "@/core/routes/types";
+import { BaseRouteGateway, RouteGateway } from "@/core/routes/routeGateway";
+import { HiddenRouteNode } from "@/core/routes/routeNode";
+import { RouteError } from "@/core/routes/errors";
+import { RouteLogger } from "@/core/routes/routeLogger";
 
 // TODO add environment variable for logs + add logs
 

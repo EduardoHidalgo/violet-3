@@ -1,8 +1,8 @@
 import { Logger } from "@/libs/logger";
 
-import { RouteError } from "@/core/api/routes/errors";
-import { BaseRouteGateway } from "@/core/api/routes/routeGateway";
-import { HiddenRouteNode } from "@/core/api/routes/routeNode";
+import { RouteError } from "@/core/routes/errors";
+import { BaseRouteGateway } from "@/core/routes/routeGateway";
+import { HiddenRouteNode } from "@/core/routes/routeNode";
 
 interface LoggableEndpoint {
   domain: string;

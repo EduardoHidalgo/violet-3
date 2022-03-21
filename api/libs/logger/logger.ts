@@ -2,7 +2,7 @@ import { path } from "app-root-path";
 
 import { FileWriter } from "@/libs/utils/fileWriter";
 import { LogColor, LogColorType, LoggerLevel } from "@/libs/logger/types";
-import { Temporal } from "../temporal";
+import { Temporal } from "@/libs/temporal";
 
 /** Specialized internal logging service. Generates optimized logs for each
  * logging case. During development, it generates logs in the console, applying
