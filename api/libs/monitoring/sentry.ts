@@ -20,6 +20,7 @@ export class SentryMonitoring {
       const PACKAGE_VERSION = environment.server.NPM_PACKAGE_VERSION;
       const SERVER_NAME = environment.server.NAME;
       const TRACE_SAMPLES_RATE = environment.sentry.TRACE_SAMPLES_RATE;
+      const USE_FOR_LOGGING = environment.sentry.USE_FOR_LOGGING;
 
       // Endpoints excludable.
       const traceExcludes = ["GET /"];
@@ -135,9 +136,17 @@ export class SentryMonitoring {
         // TracingHandler creates a trace for every incoming request.
         app.use(Sentry.Handlers.tracingHandler());
 
+        if (USE_FOR_LOGGING === undefined || USE_FOR_LOGGING!)
+          Logger.warning("Sentry as logging service was disabled");
+
+        Logger.notice("SentryMonitoring configured");
+
         return;
       } else {
-        return Logger.warning("SentryMonitoring was disabled");
+        Logger.warning("SentryMonitoring was disabled");
+
+        if (USE_FOR_LOGGING !== undefined || USE_FOR_LOGGING!)
+          Logger.warning("Sentry as logging service was disabled");
       }
     } catch (error) {
       throw new MonitoringError.Sentry.UndefinedFailure(error);

@@ -5,6 +5,8 @@ import { LogColor, LogColorType, LoggerLevel } from "@/libs/logger/types";
 import { Monitoring } from "@/libs/monitoring";
 import { Temporal } from "@/libs/temporal";
 import { BaseError } from "@/core/error";
+import { environment } from "@/environment";
+import { slackManager } from "../slack";
 
 /** Specialized internal logging service. Generates optimized logs for each
  * logging case. During development, it generates logs in the console, applying
@@ -153,15 +155,23 @@ class Logger {
       LoggerLevel.WARNING,
     ];
 
-    if (message instanceof BaseError)
-      if (badLevels.includes(level)) {
-        const sentryEventId = this.logOnSentry(message);
+    const tag = `[${level}] `;
+    const log = this.buildLog(tag, message, optionalMessages);
+
+    // Logging services only for bad levels.
+    if (badLevels.includes(level)) {
+      // First calculate sentryEventId. Sentry use message object instead log.
+      const sentryEventId = this.logOnSentry(message);
+
+      let slackPostOnFailureLooping = false;
+      if (message instanceof BaseError) {
+        slackPostOnFailureLooping = message.type == "PostMessageFailure";
 
         if (sentryEventId) message.sentryEventId = sentryEventId;
       }
 
-    const tag = `[${level}] `;
-    const log = this.buildLog(tag, message, optionalMessages);
+      this.logOnSlack(log, slackPostOnFailureLooping);
+    }
 
     this.logOnConsole(log, colors);
     this.logOnFile(log);
@@ -257,10 +267,23 @@ class Logger {
   }
 
   private static logOnSentry(log: any): string | null {
-    if (log instanceof BaseError)
-      return Monitoring.sentryThrowMonitorException(log);
+    if (environment.sentry.USE_FOR_LOGGING)
+      if (log instanceof BaseError)
+        return Monitoring.sentryThrowMonitorException(log);
 
     return null;
+  }
+
+  private static logOnSlack(log: any, isErrorLooping: boolean): void {
+    if (environment.slack.USE_FOR_LOGGING) {
+      slackManager.sendMessage({
+        channelType: "logging",
+        message: log,
+        isErrorLooping,
+      });
+    }
+
+    return;
   }
 }
 

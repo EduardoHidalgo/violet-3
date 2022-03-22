@@ -19,6 +19,7 @@ interface PrimitiveEnvsExtension {
   readonly SENTRY_DSN: EnvVar;
   readonly SENTRY_IS_ENABLED: EnvVar;
   readonly SENTRY_TRACE_SAMPLES_RATE: EnvVar;
+  readonly SENTRY_USE_FOR_LOGGING: EnvVar;
   readonly SERVER_ENVIRONMENT: EnvVar;
   readonly SERVER_LOG_ENVIRONMENT: EnvVar;
   readonly SERVER_LOG_ENVIRONMENT_VALIDATIONS: EnvVar;
@@ -28,10 +29,12 @@ interface PrimitiveEnvsExtension {
   readonly SERVER_RATE_LIMIT_MAX_REQUESTS: EnvVar;
   readonly SERVER_RATE_LIMIT_WMS_MINUTES: EnvVar;
   readonly SLACK_APP_TOKEN: EnvVar;
+  readonly SLACK_CHANNEL_LOGGING: EnvVar;
   readonly SLACK_IS_ENABLED: EnvVar;
   readonly SLACK_PORT: EnvVar;
   readonly SLACK_SIGNING_SECRET: EnvVar;
   readonly SLACK_TOKEN: EnvVar;
+  readonly SLACK_USE_FOR_LOGGING: EnvVar;
   readonly npm_package_version: EnvVar;
 }
 
@@ -80,6 +83,10 @@ class EnvironmentValidator {
       this.envs.SENTRY_TRACE_SAMPLES_RATE,
       "SENTRY_TRACE_SAMPLES_RATE"
     );
+    this.checkFloppyUndefined(
+      this.envs.SENTRY_USE_FOR_LOGGING,
+      "SENTRY_USE_FOR_LOGGING"
+    );
   }
 
   private validateServerEnvs() {
@@ -110,6 +117,10 @@ class EnvironmentValidator {
 
   private validateSlackEnvs() {
     this.checkFloppyUndefined(this.envs.SLACK_APP_TOKEN, "SLACK_APP_TOKEN");
+    this.checkFloppyUndefined(
+      this.envs.SLACK_CHANNEL_LOGGING,
+      "SLACK_CHANNEL_LOGGING"
+    );
     this.checkFloppyUndefined(this.envs.SLACK_IS_ENABLED, "SLACK_IS_ENABLED");
     this.checkFloppyUndefined(this.envs.SLACK_PORT, "SLACK_PORT");
     this.checkFloppyUndefined(
@@ -117,6 +128,10 @@ class EnvironmentValidator {
       "SLACK_SIGNING_SECRET"
     );
     this.checkFloppyUndefined(this.envs.SLACK_TOKEN, "SLACK_TOKEN");
+    this.checkFloppyUndefined(
+      this.envs.SLACK_USE_FOR_LOGGING,
+      "SLACK_USE_FOR_LOGGING"
+    );
   }
 
   private checkFloppyUndefined(env: any, name: string) {
@@ -175,6 +190,9 @@ export class EnvManager {
 
     /** Determines the ratio of traces that would be reported by monitoring. */
     TRACE_SAMPLES_RATE?: number;
+
+    /** Boolean that determines if sill log using Sentry. */
+    USE_FOR_LOGGING?: boolean;
   };
 
   server: {
@@ -224,20 +242,26 @@ export class EnvManager {
   };
 
   slack: {
-    /** */
+    /** Slack app token. */
     APP_TOKEN?: string;
 
-    /** */
+    /** Slack channel for logging. */
+    CHANNEL_LOGGING?: string;
+
+    /** Boolean that determines if Slack service is enabled. */
     IS_ENABLED?: boolean;
 
-    /** */
+    /** Network port on which the Bolt using Sockets runs as a backend service. */
     PORT?: number;
 
-    /** */
+    /** Slack signing secret. */
     SIGNING_SECRET?: string;
 
-    /** */
+    /** Slack token. */
     TOKEN?: string;
+
+    /** Boolean that determines if will log using Sentry. */
+    USE_FOR_LOGGING?: boolean;
   };
 
   constructor() {
@@ -260,6 +284,10 @@ export class EnvManager {
       TRACE_SAMPLES_RATE:
         envs.SENTRY_TRACE_SAMPLES_RATE !== undefined
           ? Number(envs.SENTRY_TRACE_SAMPLES_RATE)
+          : undefined,
+      USE_FOR_LOGGING:
+        envs.SENTRY_USE_FOR_LOGGING !== undefined
+          ? Parser.stringToBool(envs.SENTRY_USE_FOR_LOGGING)
           : undefined,
     };
 
@@ -287,6 +315,10 @@ export class EnvManager {
         envs.SLACK_APP_TOKEN !== undefined
           ? String(envs.SLACK_APP_TOKEN)
           : undefined,
+      CHANNEL_LOGGING:
+        envs.SLACK_CHANNEL_LOGGING !== undefined
+          ? String(envs.SLACK_CHANNEL_LOGGING)
+          : undefined,
       IS_ENABLED:
         envs.SLACK_IS_ENABLED !== undefined
           ? Parser.stringToBool(envs.SLACK_IS_ENABLED)
@@ -298,6 +330,10 @@ export class EnvManager {
           : undefined,
       TOKEN:
         envs.SLACK_TOKEN !== undefined ? String(envs.SLACK_TOKEN) : undefined,
+      USE_FOR_LOGGING:
+        envs.SLACK_USE_FOR_LOGGING !== undefined
+          ? Parser.stringToBool(envs.SLACK_USE_FOR_LOGGING)
+          : undefined,
     };
   }
 
