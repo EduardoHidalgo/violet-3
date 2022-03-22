@@ -1,7 +1,7 @@
 import dotenv from "dotenv";
 
 import { EnvManager } from "./envManager";
-import { ServerEnvironment } from "./types";
+import { NodeEnvironment, ServerEnvironment } from "./types";
 
 // Load centralized env file for environment definition.
 dotenv.config({
@@ -20,6 +20,6 @@ dotenv.config({
   path: `global/environments/.env.${ENVIRONMENT}`,
 });
 
-export const environment = new EnvManager();
+const environment = new EnvManager();
 
-export { EnvManager };
+export { environment, EnvManager, NodeEnvironment, ServerEnvironment };

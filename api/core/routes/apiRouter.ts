@@ -190,7 +190,7 @@ export class AbstractApiRouter {
     const gateway = this.gateways.find((g) => g.version == version);
 
     if (gateway == undefined) {
-      Logger.warning(new RouteError.VersionDoesntExistsFailure(version));
+      Logger.alert(new RouteError.VersionDoesntExistsFailure(version));
 
       return true;
     }
@@ -265,14 +265,14 @@ export class AbstractApiRouter {
   ): boolean {
     const gateway = this.gateways.find((g) => g.version == version);
     if (gateway == undefined) {
-      Logger.warning(new RouteError.VersionDoesntExistsFailure(version));
+      Logger.alert(new RouteError.VersionDoesntExistsFailure(version));
 
       return true;
     }
 
     const node = gateway.nodes.find((n) => n.domain == domain);
     if (node == undefined) {
-      Logger.warning(new RouteError.DomainDoesntExistsFailure(domain));
+      Logger.alert(new RouteError.DomainDoesntExistsFailure(domain));
 
       return true;
     }

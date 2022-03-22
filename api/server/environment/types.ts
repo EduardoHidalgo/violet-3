@@ -1,27 +1,42 @@
 import { BaseError, ServerErrorCode } from "@/core/error";
 
 export namespace EnvironmentError {
-  export class EnvironmentValidatorFailure extends BaseError {
+  export class EnvironmentValidationFailure extends BaseError {
     constructor() {
       super({
         code: ServerErrorCode["INTERNAL-SERVER-ERROR"],
-        message:
-          "The server variable environment validation has failed. This is a " +
-          "critical error on the server.",
-        type: `${EnvironmentValidatorFailure.name}`,
+        detail: "This is a critical error on the server.",
+        message: "The server variable environment validation has failed.",
+        solution:
+          "There is no set solution. You need to contact the support team for further assistance.",
+        type: `${EnvironmentValidationFailure.name}`,
+      });
+    }
+  }
+
+  export class OptionalEnvironmentUndefinedException extends BaseError {
+    constructor(variable: string) {
+      super({
+        code: ServerErrorCode["INTERNAL-SERVER-ERROR"],
+        detail:
+          "This exception means this variable was not provided or setted properly in the environment variable file.",
+        message: `The environment variable ${variable} was undefined, but it's also optional provide it.`,
+        solution:
+          "This variable is optional, but it's recommended to provided to take advantage of all server features.",
+        type: `${EnvironmentUndefinedException.name}`,
       });
     }
   }
 
   export class EnvironmentUndefinedException extends BaseError {
-    constructor(envVariable: string) {
+    constructor(variable: string) {
       super({
         code: ServerErrorCode["INTERNAL-SERVER-ERROR"],
-        message:
-          `The environment variable ${envVariable} was undefined. ` +
-          "This means that was not provided or setted properly in the " +
-          "environment variable file. Server could not start without " +
-          "this env var.",
+        detail:
+          "This exception means this variable was not provided or setted properly in the environment variable file. Server could not start without this env var.",
+        message: `The environment variable ${variable} was undefined.`,
+        solution:
+          "Please provide the variable to be able to start the server properly.",
         type: `${EnvironmentUndefinedException.name}`,
       });
     }

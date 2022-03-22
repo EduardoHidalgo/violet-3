@@ -5,7 +5,9 @@ import { environment } from "@/environment";
 import {
   corsMiddleware,
   environmentMiddleware,
+  errorMonitoringMiddleware,
   helmetMiddleware,
+  monitoringMiddleware,
   morganMiddleware,
   parserMiddleware,
   rateLimitMiddleware,
@@ -42,9 +44,12 @@ export class ServerApp {
     rateLimitMiddleware(this.app);
     parserMiddleware(this.app);
     morganMiddleware(this.app);
+    monitoringMiddleware(this.app);
 
-    // Routing always should be the last middleware called.
+    // Routing always should be the penultimate middleware called.
     routesMiddleware(this.app);
+
+    errorMonitoringMiddleware(this.app);
   }
 
   private start() {

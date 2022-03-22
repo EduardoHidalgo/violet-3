@@ -20,6 +20,9 @@ export interface ErrorArgs {
    * info about what happened and give insight of where should be the mistake. */
   detail?: string;
 
+  /** EventId of Sentry error catching, for debug relation process. */
+  sentryEventId?: string;
+
   /** Brief message oriented to users readers. It must provide an action to be
    * taken as a procedure to resolve or act in response to the error. */
   solution?: string;
@@ -52,6 +55,9 @@ export class BaseError extends Error {
    * info about what happened and give insight of where should be the mistake. */
   detail?: string;
 
+  /** EventId of Sentry error catching, for debug relation process. */
+  sentryEventId?: string;
+
   /** Brief message oriented to users readers. It must provide an action to be
    * taken as a procedure to resolve or act in response to the error. */
   solution?: string;
@@ -63,7 +69,8 @@ export class BaseError extends Error {
   constructor(args: ErrorArgs) {
     super();
 
-    const { code, detail, error, message, solution, type } = args;
+    const { code, detail, error, message, sentryEventId, solution, type } =
+      args;
 
     if (error instanceof Error) {
       Object.defineProperty(error, "message", { enumerable: true });
@@ -79,6 +86,7 @@ export class BaseError extends Error {
     this.detail = detail;
     this.error = error;
     this.message = message;
+    this.sentryEventId = sentryEventId;
     this.solution = solution;
     this.type = type;
   }

@@ -2,7 +2,9 @@ import { path } from "app-root-path";
 
 import { FileWriter } from "@/libs/utils/fileWriter";
 import { LogColor, LogColorType, LoggerLevel } from "@/libs/logger/types";
+import { Monitoring } from "@/libs/monitoring";
 import { Temporal } from "@/libs/temporal";
+import { BaseError } from "@/core/error";
 
 /** Specialized internal logging service. Generates optimized logs for each
  * logging case. During development, it generates logs in the console, applying
@@ -143,6 +145,21 @@ class Logger {
     message: any,
     optionalMessages?: any[]
   ): void {
+    const badLevels = [
+      LoggerLevel.ALERT,
+      LoggerLevel.CRITICAL,
+      LoggerLevel.EMERGENCY,
+      LoggerLevel.ERROR,
+      LoggerLevel.WARNING,
+    ];
+
+    if (message instanceof BaseError)
+      if (badLevels.includes(level)) {
+        const sentryEventId = this.logOnSentry(message);
+
+        if (sentryEventId) message.sentryEventId = sentryEventId;
+      }
+
     const tag = `[${level}] `;
     const log = this.buildLog(tag, message, optionalMessages);
 
@@ -237,6 +254,13 @@ class Logger {
       // loop call.
       console.error(error);
     }
+  }
+
+  private static logOnSentry(log: any): string | null {
+    if (log instanceof BaseError)
+      return Monitoring.sentryThrowMonitorException(log);
+
+    return null;
   }
 }
 

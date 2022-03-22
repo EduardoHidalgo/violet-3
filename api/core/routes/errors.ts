@@ -7,7 +7,7 @@ export namespace RouteError {
         code: ServerErrorCode["INTERNAL-SERVER-ERROR"],
         detail:
           "Some endpoint had an undefined domain value while trying to add it to a RouteNode. This should not have happened and is a major error, although it may be due to human error in the domain definition.",
-        message: "Some endpoint had an undefined domain..",
+        message: "Some endpoint had an undefined domain.",
         solution:
           "There is no set solution. You need to contact the support team for further assistance.",
         type: `${UndefinedDomainException.name}`,
