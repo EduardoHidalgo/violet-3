@@ -58,8 +58,11 @@ export enum ServerEnvironment {
   /** Production environment. */
   production = "production",
 
-  /** Testing environment. */
+  /** Open Testing environment. */
   testing = "testing",
+
+  /** Automation Testing environment. */
+  automation = "automation",
 }
 
 export type ServerEnvironmentType = keyof typeof ServerEnvironment;
