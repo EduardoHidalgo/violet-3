@@ -5,61 +5,64 @@ export namespace RouteError {
     constructor() {
       super({
         code: ServerErrorCode["INTERNAL-SERVER-ERROR"],
-        message: "",
+        detail:
+          "Some endpoint had an undefined domain value while trying to add it to a RouteNode. This should not have happened and is a major error, although it may be due to human error in the domain definition.",
+        message: "Some endpoint had an undefined domain..",
+        solution:
+          "There is no set solution. You need to contact the support team for further assistance.",
         type: `${UndefinedDomainException.name}`,
-        // TODO add detail and solution
       });
     }
   }
 
   export class DomainDoesntExistsFailure extends BaseError {
-    // TODO use props in message
     constructor(domain: string) {
       super({
         code: ServerErrorCode["INTERNAL-SERVER-ERROR"],
-        // TODO add message
-        message: "",
+        detail: `An endpoint has tried to be validated without previously registering the domain '${domain}' to which it belongs.`,
+        message: "There is no domain registered for this endpoint.",
+        solution:
+          "This is probably a human error in the routing implementation.",
         type: `${DomainDoesntExistsFailure.name}`,
-        // TODO add detail and solution
       });
     }
   }
 
   export class DuplicatedDomainException extends BaseError {
-    // TODO use props in message
     constructor(domain: string) {
       super({
         code: ServerErrorCode["INTERNAL-SERVER-ERROR"],
-        // TODO add message
-        message: "",
+        detail: `The domain '${domain}' that was attempted to be registered already exists previously in the RouteGateways list of the current version.`,
+        message: "The domain tried to register already exists.",
+        solution:
+          "This is probably a human error in the routing implementation. Try using a different domain name.",
         type: `${DuplicatedDomainException.name}`,
-        // TODO add detail and solution
       });
     }
   }
 
   export class DuplicatedEndpointException extends BaseError {
-    // TODO use props in message
     constructor(uri: string, verb: string) {
       super({
         code: ServerErrorCode["INTERNAL-SERVER-ERROR"],
-        // TODO add message
-        message: "",
+        detail: `The endpoint with uri '${uri}' and verb '${verb}' that was attempted to be registered already exists previously in the RouteGateway of the current version.`,
+        message: "The endpoint tried to register already exists.",
+        solution:
+          "This is probably a human error in the routing implementation. Try using a different verb and uri values, pursuing the RESTful principles.",
         type: `${DuplicatedEndpointException.name}`,
-        // TODO add detail and solution
       });
     }
   }
 
   export class DuplicatedVersionException extends BaseError {
-    // TODO use props in message
     constructor(version: string) {
       super({
         code: ServerErrorCode["INTERNAL-SERVER-ERROR"],
-        // TODO add message
-        message: "",
+        detail: `The version '${version}' that was attempted to be registered already exists previously in the ApiRouter instance.`,
+        message: "The version tried to register already exists.",
+        solution:
+          "This is probably a human error in the routing implementation. Try using a different version.",
         type: `${DuplicatedVersionException.name}`,
-        // TODO add detail and solution
       });
     }
   }
@@ -69,10 +72,11 @@ export namespace RouteError {
       super({
         code: ServerErrorCode["INTERNAL-SERVER-ERROR"],
         error,
-        // TODO fix message with properly argument.
-        message: "This is a debug sentry error for testing purpose.",
+        detail: "This should not happen and is a critical error.",
+        message: "Route tree logging failed.",
+        solution:
+          "There is no set solution. You need to contact the support team for further assistance.",
         type: `${PrintEndpointsFailure.name}`,
-        // TODO add detail and solution
       });
     }
   }
@@ -81,46 +85,54 @@ export namespace RouteError {
     constructor() {
       super({
         code: ServerErrorCode["INTERNAL-SERVER-ERROR"],
-        message: "This is a debug sentry error for testing purpose.",
+        detail: "You shouldn't worry about this error, was intentional.",
+        message:
+          "This is a debug error for testing purposes on monitoring services.",
+        solution: "There is no set solution.",
         type: `${MonitoringFalsePositiveException.name}`,
-        // TODO add detail and solution
       });
     }
   }
 
   export class TurningOnGatewayFailure extends BaseError {
-    constructor(error: any) {
+    constructor(error: Error) {
       super({
         code: ServerErrorCode["INTERNAL-SERVER-ERROR"],
-        message: "",
-        type: `${TurningOnGatewayFailure.name}`,
+        detail: "This should not happen and is a critical error.",
         error,
+        message: "Starting routing has failed.",
+        solution:
+          "There is no set solution. You need to contact the support team for further assistance.",
+        type: `${TurningOnGatewayFailure.name}`,
       });
     }
   }
 
-  export class UndefinedFailure extends BaseError {
-    constructor(error: any) {
+  export class UndefinedRouteFailure extends BaseError {
+    constructor(error: Error) {
       super({
         code: ServerErrorCode["INTERNAL-SERVER-ERROR"],
+        detail:
+          "Some undefined error has occurred executing an endpoint request, which is considered a critical server failure.",
         error,
-        // TODO add message
-        message: "",
-        type: `${UndefinedFailure.name}`,
-        // TODO add detail and solution
+        message: "An unexpected error occurred trying to execute an endpoint.",
+        solution:
+          "There is no set solution. You need to contact the support team for further assistance.",
+        type: `${UndefinedRouteFailure.name}`,
       });
     }
   }
 
   export class VersionDoesntExistsFailure extends BaseError {
-    // TODO use props in message
     constructor(version: string) {
       super({
         code: ServerErrorCode["INTERNAL-SERVER-ERROR"],
-        // TODO add message
-        message: "",
+        detail: `Apparently during some validations of the ApiRouter there was no RouteGateway registered under the version '${version}' used.`,
+        message:
+          "The version that was tried to use on validations doesn't exists.",
+        solution:
+          "There is no set solution. You need to contact the support team for further assistance.",
         type: `${VersionDoesntExistsFailure.name}`,
-        // TODO add detail and solution
       });
     }
   }

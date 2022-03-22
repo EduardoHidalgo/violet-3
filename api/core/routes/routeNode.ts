@@ -202,7 +202,7 @@ export class AbstractRouteNode<Domain, Routes> {
 
       return res.status(result.code).json(result.getValue());
     } catch (e) {
-      const failure = new RouteError.UndefinedFailure(e);
+      const failure = new RouteError.UndefinedRouteFailure(e);
       return res.status(failure.code).json(failure);
     }
   };

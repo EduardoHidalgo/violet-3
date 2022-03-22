@@ -197,7 +197,7 @@ export class AbstractApiRouter {
 
     for (const node of gateway.nodes) {
       if (node.domain == domain) {
-        Logger.warning(new RouteError.DuplicatedVersionException(version));
+        Logger.warning(new RouteError.DuplicatedDomainException(domain));
 
         return true;
       }

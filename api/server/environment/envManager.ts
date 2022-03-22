@@ -16,7 +16,6 @@ interface PrimitiveEnvsExtension {
   readonly API_BASE_URI: EnvVar;
   readonly INFRA_IS_DEPLOY: EnvVar;
   readonly SERVER_ENVIRONMENT: EnvVar;
-  readonly SERVER_ENV_DEBUG: EnvVar;
   readonly SERVER_LOG_ENVIRONMENT: EnvVar;
   readonly SERVER_LOG_ROUTING_TREE: EnvVar;
   readonly SERVER_NAME: EnvVar;
@@ -62,7 +61,6 @@ class EnvironmentValidator {
     this.checkUndefined(this.envs.NODE_ENV, "NODE_ENV");
 
     this.checkUndefined(this.envs.SERVER_ENVIRONMENT, "SERVER_ENVIRONMENT");
-    this.checkUndefined(this.envs.SERVER_ENV_DEBUG, "SERVER_ENV_DEBUG");
     this.checkUndefined(
       this.envs.SERVER_LOG_ENVIRONMENT,
       "SERVER_LOG_ENVIRONMENT"
@@ -100,24 +98,46 @@ class EnvironmentValidator {
  * job correctly.
  */
 export class EnvManager {
-  // TODO add descriptive comments for all variables
   api: {
+    /** Base uri on which all API routes are built. */
     BASE_URI: string;
   };
   infra: {
+    /** Boolean that determines if the current server is being deployed on some
+     * infrastructure. */
     IS_DEPLOY: boolean;
   };
   server: {
+    /** Personal environment of the server, associated with the system
+     * environments. */
     ENVIRONMENT: ServerEnvironmentType;
+
+    /** Boolean that determines whether environment variables should be
+     * logged. */
     LOG_ENVIRONMENT: boolean;
+
+    /** Boolean that determines if the routing tree should be logged. */
     LOG_ROUTING_TREE: boolean;
+
+    /** Server name for log and identification purposes. */
     NAME: string;
+
+    /** Environment variable used for the Node.js server. */
     NODE_ENV: NodeEnvironmentType;
+
+    /** Network port on which the server runs as a backend service. */
     PORT: number;
+
+    /** Sets the number of requests that the user has as a limit to make
+     * multiple requests to the server during the window time. */
     RATE_LIMIT_MAX_REQUESTS: number;
+
+    /** It establishes the window minutes that a user has as a limit to make
+     * multiple requests to the server. */
     RATE_LIMIT_WMS_MINUTES: number;
 
-    /** According to ICANN Timezone database.
+    /** Sets the time zone used by the server to calculate dates and times,
+     * according to ICANN Timezone database.
      * @link https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
      */
     TIMEZONE: string;

@@ -75,11 +75,15 @@ export interface ResponseBase<Dto>
     Dto | EmptyCollection<Dto> | EmptyDocument<Dto> | BaseError
   > {}
 
-// TODO document usage
+/** Typed that represents the result of an endpoint in the form of a list.
+ */
 export type EmptyCollection<T> = T[];
 
-// TODO document usage
+/** Typed that represents the result of an endpoint in the form of a object.
+ */
 export type EmptyDocument<T> = T | Empty;
 
-// TODO document usage
+/** Typed that represents the result of an endpoint in the form of an empty
+ * result.
+ */
 export type Empty = void;
