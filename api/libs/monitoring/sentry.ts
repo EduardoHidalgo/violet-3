@@ -11,7 +11,7 @@ import { MonitoringError } from "./errors";
 export class SentryMonitoring {
   static configure(app: Express): void {
     try {
-      // If some problem emerge, abort sentry initialization.
+      // If some problem emerge, abort initialization.
       let abort = false;
 
       const DSN = environment.sentry.DSN;

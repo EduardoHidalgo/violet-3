@@ -27,6 +27,11 @@ interface PrimitiveEnvsExtension {
   readonly SERVER_PORT: EnvVar;
   readonly SERVER_RATE_LIMIT_MAX_REQUESTS: EnvVar;
   readonly SERVER_RATE_LIMIT_WMS_MINUTES: EnvVar;
+  readonly SLACK_APP_TOKEN: EnvVar;
+  readonly SLACK_IS_ENABLED: EnvVar;
+  readonly SLACK_PORT: EnvVar;
+  readonly SLACK_SIGNING_SECRET: EnvVar;
+  readonly SLACK_TOKEN: EnvVar;
   readonly npm_package_version: EnvVar;
 }
 
@@ -50,6 +55,7 @@ class EnvironmentValidator {
       this.validateApiEnvs();
       this.validateInfraEnvs();
       this.validateSentryEnvs();
+      this.validateSlackEnvs();
 
       if (this.error != null) return this.error;
 
@@ -100,6 +106,17 @@ class EnvironmentValidator {
     );
     this.checkUndefined(this.envs.TZ, "TZ");
     this.checkUndefined(this.envs.npm_package_version, "npm_package_version");
+  }
+
+  private validateSlackEnvs() {
+    this.checkFloppyUndefined(this.envs.SLACK_APP_TOKEN, "SLACK_APP_TOKEN");
+    this.checkFloppyUndefined(this.envs.SLACK_IS_ENABLED, "SLACK_IS_ENABLED");
+    this.checkFloppyUndefined(this.envs.SLACK_PORT, "SLACK_PORT");
+    this.checkFloppyUndefined(
+      this.envs.SLACK_SIGNING_SECRET,
+      "SLACK_SIGNING_SECRET"
+    );
+    this.checkFloppyUndefined(this.envs.SLACK_TOKEN, "SLACK_TOKEN");
   }
 
   private checkFloppyUndefined(env: any, name: string) {
@@ -206,6 +223,23 @@ export class EnvManager {
     TIMEZONE: string;
   };
 
+  slack: {
+    /** */
+    APP_TOKEN?: string;
+
+    /** */
+    IS_ENABLED?: boolean;
+
+    /** */
+    PORT?: number;
+
+    /** */
+    SIGNING_SECRET?: string;
+
+    /** */
+    TOKEN?: string;
+  };
+
   constructor() {
     const envs: PrimitiveEnvs = process.env as PrimitiveEnvs;
 
@@ -222,6 +256,10 @@ export class EnvManager {
       IS_ENABLED:
         envs.SENTRY_IS_ENABLED !== undefined
           ? Parser.stringToBool(envs.SENTRY_IS_ENABLED)
+          : undefined,
+      TRACE_SAMPLES_RATE:
+        envs.SENTRY_TRACE_SAMPLES_RATE !== undefined
+          ? Number(envs.SENTRY_TRACE_SAMPLES_RATE)
           : undefined,
     };
 
@@ -242,6 +280,24 @@ export class EnvManager {
       RATE_LIMIT_MAX_REQUESTS: Number(envs.SERVER_RATE_LIMIT_MAX_REQUESTS),
       RATE_LIMIT_WMS_MINUTES: Number(envs.SERVER_RATE_LIMIT_WMS_MINUTES),
       TIMEZONE: String(envs.TZ),
+    };
+
+    this.slack = {
+      APP_TOKEN:
+        envs.SLACK_APP_TOKEN !== undefined
+          ? String(envs.SLACK_APP_TOKEN)
+          : undefined,
+      IS_ENABLED:
+        envs.SLACK_IS_ENABLED !== undefined
+          ? Parser.stringToBool(envs.SLACK_IS_ENABLED)
+          : undefined,
+      PORT: envs.SLACK_PORT !== undefined ? Number(envs.SLACK_PORT) : undefined,
+      SIGNING_SECRET:
+        envs.SLACK_SIGNING_SECRET !== undefined
+          ? String(envs.SLACK_SIGNING_SECRET)
+          : undefined,
+      TOKEN:
+        envs.SLACK_TOKEN !== undefined ? String(envs.SLACK_TOKEN) : undefined,
     };
   }
 

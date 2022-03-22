@@ -12,6 +12,7 @@ import {
   parserMiddleware,
   rateLimitMiddleware,
   routesMiddleware,
+  slackMiddleware,
 } from "@/middlewares";
 import { Logger } from "@/libs/logger";
 
@@ -50,6 +51,7 @@ export class ServerApp {
     routesMiddleware(this.app);
 
     errorMonitoringMiddleware(this.app);
+    await slackMiddleware();
   }
 
   private start() {

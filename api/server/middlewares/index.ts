@@ -6,3 +6,4 @@ export * from "./morgan";
 export * from "./parser";
 export * from "./rateLimit";
 export * from "./routes";
+export * from "./slack";
