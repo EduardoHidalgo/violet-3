@@ -1,22 +1,21 @@
-import { RouteVersionFn } from "@/core/routes";
+import { ApiRouterFn } from "@/core/routes";
 
-import { clientRoutes, ClientDomain, ClientRoutes } from "@/api/v1/clients";
-import {
-  managementRoutes,
-  ManagementDomain,
-  ManagementRoutes,
-} from "@/api/v1/management";
+import { ClientController } from "@/api/v2/clients";
+import { ManagementController } from "@/api/v2/management";
 
-export type V2DomainUnionType = ClientDomain | ManagementDomain;
-export type V2EndpointRouteUnionType = ClientRoutes | ManagementRoutes;
+export namespace VersionSwitchTwo {
+  export type Domains = ClientController.Domain | ManagementController.Domain;
 
-export const v2: RouteVersionFn<V2DomainUnionType, V2EndpointRouteUnionType> = (
-  apiRouter
-) => {
-  const routeGateway = apiRouter.register({
-    version: "v2",
-  });
+  export type Routes =
+    | ClientController.RouteMap
+    | ManagementController.RouteMap;
 
-  clientRoutes(routeGateway);
-  managementRoutes(routeGateway);
-};
+  export const router: ApiRouterFn<Domains, Routes> = (apiRouter) => {
+    const routeGateway = apiRouter.register({
+      version: "v1",
+    });
+
+    ClientController.gateway(routeGateway);
+    ManagementController.gateway(routeGateway);
+  };
+}

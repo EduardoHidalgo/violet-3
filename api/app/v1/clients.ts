@@ -1,24 +1,23 @@
 import { Result } from "@/core/result";
-import { RouteDomainFn } from "@/core/routes";
+import { RouteGatewayFn } from "@/core/routes";
 
-export type ClientDomain = "clients";
-const domain: ClientDomain = "clients";
+export namespace ClientController {
+  export type Domain = "clients";
 
-export enum ClientRoutes {
-  getMany = "clients/",
-  get = "clients/:clientId",
+  export enum RouteMap {
+    getMany = "clients/",
+    get = "clients/:clientId",
+  }
+
+  export const gateway: RouteGatewayFn<Domain, RouteMap> = (routeGateway) => {
+    const routeNode = routeGateway.register("clients");
+
+    routeNode.addEndpoint("get", RouteMap.get, async () => {
+      return new Result({ code: 200, isSuccess: true });
+    });
+
+    routeNode.addEndpoint("get", RouteMap.getMany, async () => {
+      return new Result({ code: 200, isSuccess: true });
+    });
+  };
 }
-
-export const clientRoutes: RouteDomainFn<ClientDomain, ClientRoutes> = (
-  routeGateway
-) => {
-  const routeNode = routeGateway.register(domain);
-
-  routeNode.addEndpoint("get", ClientRoutes.get, async () => {
-    return new Result({ code: 200, isSuccess: true });
-  });
-
-  routeNode.addEndpoint("get", ClientRoutes.getMany, async () => {
-    return new Result({ code: 200, isSuccess: true });
-  });
-};

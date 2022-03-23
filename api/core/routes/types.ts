@@ -3,22 +3,23 @@ import { Express } from "express";
 import { ApiRouter, RouteGateway } from "@/core/routes";
 
 /** Type of function that should be used to define the main route middleware,
- * where all {@link RouteVersionFn} are invoked. This middleware should
+ * where all {@link ApiRouterFn} are invoked. This middleware should
  * be called by the ServerApp.
  */
 export type RoutesMiddlewareFn = (app: Express) => void;
+export type MainRouterFn = RoutesMiddlewareFn;
 
 /** Type of function that should be used to define the route functions in
  * charge of declaring a new api version.
  */
-export type RouteVersionFn<DomainGlobalUnion, RoutesGlobalUnion> = (
+export type ApiRouterFn<DomainGlobalUnion, RoutesGlobalUnion> = (
   apiRouter: ApiRouter<DomainGlobalUnion, RoutesGlobalUnion>
 ) => void;
 
 /** Type of function that should be used to define the route functions in
  * charge of declaring the endpoints of a particular domain.
  */
-export type RouteDomainFn<DomainUnion, RoutesUnion> = (
+export type RouteGatewayFn<DomainUnion, RoutesUnion> = (
   routeGateway: RouteGateway<DomainUnion, RoutesUnion>
 ) => void;
 

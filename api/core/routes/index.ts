@@ -2,11 +2,12 @@ import { ApiRouter } from "@/core/routes/apiRouter";
 import { RouteGateway } from "@/core/routes/routeGateway";
 import { RouteNode, RouteNodeArgs } from "@/core/routes/routeNode";
 import {
+  ApiRouterFn,
   ApiVersion,
   ApiVersionEnum,
+  MainRouterFn,
   RestVerb,
-  RouteDomainFn,
-  RouteVersionFn,
+  RouteGatewayFn,
   RoutesMiddlewareFn,
   apiVersions,
 } from "@/core/routes/types";
@@ -14,14 +15,15 @@ import {
 // Exports only relevant things for the rest of base code.
 export {
   ApiRouter,
+  ApiRouterFn,
   ApiVersion,
   ApiVersionEnum,
+  MainRouterFn,
   RestVerb,
-  RouteDomainFn,
   RouteGateway,
+  RouteGatewayFn,
   RouteNode,
   RouteNodeArgs,
-  RouteVersionFn,
   RoutesMiddlewareFn,
   apiVersions,
 };

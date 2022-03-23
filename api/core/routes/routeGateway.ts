@@ -34,7 +34,7 @@ export class RouteGateway<DomainUnion, RoutesUnion> {
    * @returns New RouteNode instance.
    */
   register = <Domain extends DomainUnion, Routes extends RoutesUnion>(
-    domain: string
+    domain: Domain
   ): RouteNode<Domain, Routes> => this.routeGateway.register(domain);
 }
 
@@ -62,12 +62,12 @@ export class AbstractRouteGateway {
     this.nodes = [];
   }
 
-  register<Domain, Routes>(domain: string): RouteNode<Domain, Routes> {
-    this.domain = domain;
+  register<Domain, Routes>(domain: Domain): RouteNode<Domain, Routes> {
+    this.domain = String(domain);
 
     // Validate if this routeNode actually exists.
     const isDomainDuplicated = this.scopeReference.hasDomainDuplicity(
-      domain,
+      this.domain,
       this.version
     );
 

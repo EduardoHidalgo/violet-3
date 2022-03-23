@@ -3,7 +3,7 @@ import { Express, Router } from "express";
 import { environment } from "@/environment";
 import { Logger } from "@/libs/logger";
 
-import { ApiVersion, RestVerb, RouteDomainFn } from "@/core/routes/types";
+import { ApiVersion, RestVerb, RouteGatewayFn } from "@/core/routes/types";
 import { AbstractRouteGateway, RouteGateway } from "@/core/routes/routeGateway";
 import { AbstractRouteNode } from "@/core/routes/routeNode";
 import { RouteError } from "@/core/routes/errors";
@@ -44,7 +44,7 @@ export class ApiRouter<DomainGlobalUnion, RoutesGlobalUnion> {
    * API version can be registered.
    *
    * @returns the RouteGateway instance, required by
-   * {@link RouteDomainFn} function.
+   * {@link RouteGatewayFn} function.
    */
   register = <
     DomainUnion extends DomainGlobalUnion,
